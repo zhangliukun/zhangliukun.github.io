@@ -1,0 +1,651 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="六锟小站">
+    <title>shadowsocks翻墙教程 - 六锟小站</title>
+    <meta name="author" content="zhangliukun">
+    
+    
+        <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
+    
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"简介近日买了个VPS主机，经推荐买了个便宜的VPS主机，刚刚将所有服务都搭好，自己进行了测试，发现速度挺好，还能在线观看youtube的视频。\n起步说道，经过我本人发现，网上的教程大都都没有讲清楚或者讲的太乱，对于我这种新兴用户来说难免有些晕。接下来我就把我个人摸索出来的搭建步骤简单整理一下供大家参考，尽量让大家少走弯路。\n\n\n机器环境\nVPS 主机：ubuntu 12.04\n客户端：windows，linux，android手机，ipad\n\n搭建步骤VPS主机\n首先，你得有一台VPS主机，我买的是HOST1Plus网上的主机，这个是国外的，一般只要用作翻墙的话买最便宜的配置的VPS主机一般足够用了，当然你是土豪你随意。另外，如果你有关于主机选择方面的问题的话你也可以联系在线客服，可惜是歪国人，英语不是很好的比如我准备好百度翻译以备不时只需。\n\nVPS主机配置\n然后，你得配置你的主机，让你的主机具有代理的功能服务。这里我使用的一个软件叫shadowsocks，中文名好像叫“影梭”。关于在ubuntu下的安装也是十分的简单，概括一下就是先安装shadowsocks软件。命令如下：\n\n12apt-get install python-gevent python-pippip install shadowsocks\n\n\n接着，对这个软件的配置也很简单，自己找个目录，然后新建一个config.json文件，名字可以自己取。如下：\n\n12345678&#123;  \"server\":\"my_server_ip\",  \"server_port\":8388,  \"local_port\":1080,  \"password\":\"password\",  \"timeout\":600,  \"method\":\"table\"&#125;\n\n\n这里面也是非常直观的，一般只要该server和password，其中服务器端的server的地址就是服务器的IP地址。还有method是传输的加密方式，一般也要改。可选择“bf-cfb”,“aes-256-cfb”,“des-cfb”,“rc4″,等等。默认是一种不安全的加密，推荐用“aes-256-cfb”\n\n配置完以后就在这个文件的目录下执行，就能启动服务了，当然也可选择后台服务运行\n\n\n12345#在终端中启动服务ssserver -c /etc/shadowsocks/config.json#在后台启动服务，如果在终端中启动服务的话如果退出当前终端的话服务就被杀死了，所以为了保持服务的继续存在，需要将服务在后台运行。nohup ssserver -c /usr/local/lib/python2.7/dist-packages/shadowsocks/config.json &gt; log &amp;\n\n###客户端配置\n\n客户端中的配置看具体情况了，向Ipad或者android都有比较方便的客户端，直接改一下地址就行。\n\n但是在PC端 的话除了运行客户端软件外，当你在浏览器中浏览网页时还需要配置一下浏览器，这里我用的谷歌浏览器，用了SwitchyOmega这个插件，总体感觉挺好用，就是在新建一个代理，IP地址填本地主机127.0.0.1就行，端口为本地的那个文件的本地端口。\n\n说道本地文件，这里作为客户端依旧需要服务器的那个文件，新建配置文件，然后在相应的目录执行这个命令就能将客户端与服务器连接起来。\n12#后台执行命令 nohup sslocal -s IP地址 -p 服务器端口号 -k 密码 &gt; logs &amp;\n\n另外，加入你比较懒的话，不想每次都开机时都重新手动去执行一次这个命令的话，你可以创建一个shell脚本，然后写入/etc/rc.local 这个文件中去，让它开机自动启动。\n\n在浏览器插件中设置相应的过滤规则就能方便的翻墙了。其中浏览器设置方式为sock5方式。\n\n\n","dateCreated":"2015-07-13T19:09:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2015-07-13T19:09:00+08:00","description":"简介近日买了个VPS主机，经推荐买了个便宜的VPS主机，刚刚将所有服务都搭好，自己进行了测试，发现速度挺好，还能在线观看youtube的视频。\n起步说道，经过我本人发现，网上的教程大都都没有讲清楚或者讲的太乱，对于我这种新兴用户来说难免有些晕。接下来我就把我个人摸索出来的搭建步骤简单整理一下供大家参考，尽量让大家少走弯路。","headline":"shadowsocks翻墙教程","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2015/07/13/shadowsocks翻墙教程/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2015/07/13/shadowsocks翻墙教程/","keywords":"VPS, shadowsocks, 翻墙"}</script>
+    <meta name="description" content="使用VPS主机和shadowsocks搭建代理服务器翻墙">
+<meta name="keywords" content="VPS,shadowsocks,翻墙">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="shadowsocks翻墙教程">
+<meta property="og:url" content="http://zhangliukun.cn/2015/07/13/shadowsocks翻墙教程/index.html">
+<meta property="og:site_name" content="六锟小站">
+<meta property="og:description" content="使用VPS主机和shadowsocks搭建代理服务器翻墙">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:updated_time" content="2019-08-20T12:14:42.848Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="shadowsocks翻墙教程">
+<meta name="twitter:description" content="使用VPS主机和shadowsocks搭建代理服务器翻墙">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="http://zhangliukun.cn/assets/images/avatar.jpg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-4iwpnc93lrhj5xhp85jwjyjr2detotwl3e6te5tkbp5mthm9fmtbqzvsi9tc.min.css">
+    <!--STYLES END-->
+    
+
+    
+
+    
+        
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a
+            class="header-title-link"
+            href="/ "
+            aria-label=""
+        >
+            六锟小站
+        </a>
+    </div>
+    
+        
+            <a
+                class="header-right-picture "
+                href="#about"
+                aria-label="打开链接: /#about"
+            >
+        
+        
+            <img class="header-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a
+                    href="/#about"
+                    aria-label="阅读有关作者的更多信息"
+                >
+                    <img class="sidebar-profile-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+                </a>
+                <h4 class="sidebar-profile-name">zhangliukun</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>天蝎座？</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="首页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">首页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-tags"
+                            
+                            title="标签"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">标签</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-archives"
+                            
+                            title="归档"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">归档</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="#about"
+                            
+                            title="关于"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">关于</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/zhangliukun" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.facebook.com/zhang.zale" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fab fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/assets/love/index.html"
+                            title="Love"
+                        >
+                    
+                        <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Love</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/mailto"
+                            title="邮箱"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">邮箱</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            shadowsocks翻墙教程
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2015-07-13T19:09:00+08:00">
+	
+		    7月 13, 2015
+    	
+    </time>
+    
+        <span>发布在 </span>
+        
+    <a class="category-link" href="/categories/工具相关/">工具相关</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>近日买了个VPS主机，经推荐买了个便宜的VPS主机，刚刚将所有服务都搭好，自己进行了测试，发现速度挺好，还能在线观看youtube的视频。</p>
+<h2 id="起步"><a href="#起步" class="headerlink" title="起步"></a>起步</h2><p>说道，经过我本人发现，网上的教程大都都没有讲清楚或者讲的太乱，对于我这种新兴用户来说难免有些晕。接下来我就把我个人摸索出来的搭建步骤简单整理一下供大家参考，尽量让大家少走弯路。</p>
+<a id="more"></a>
+
+<h2 id="机器环境"><a href="#机器环境" class="headerlink" title="机器环境"></a>机器环境</h2><ul>
+<li>VPS 主机：ubuntu 12.04</li>
+<li>客户端：windows，linux，android手机，ipad</li>
+</ul>
+<h2 id="搭建步骤"><a href="#搭建步骤" class="headerlink" title="搭建步骤"></a>搭建步骤</h2><h3 id="VPS主机"><a href="#VPS主机" class="headerlink" title="VPS主机"></a>VPS主机</h3><ul>
+<li>首先，你得有一台VPS主机，我买的是HOST1Plus网上的主机，这个是国外的，一般只要用作翻墙的话买最便宜的配置的VPS主机一般足够用了，当然你是土豪你随意。另外，如果你有关于主机选择方面的问题的话你也可以联系在线客服，可惜是歪国人，英语不是很好的比如我准备好百度翻译以备不时只需。</li>
+</ul>
+<h3 id="VPS主机配置"><a href="#VPS主机配置" class="headerlink" title="VPS主机配置"></a>VPS主机配置</h3><ul>
+<li>然后，你得配置你的主机，让你的主机具有代理的功能服务。这里我使用的一个软件叫shadowsocks，中文名好像叫“影梭”。关于在ubuntu下的安装也是十分的简单，概括一下就是先安装shadowsocks软件。命令如下：</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">apt-get install python-gevent python-pip</span><br><span class="line">pip install shadowsocks</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>接着，对这个软件的配置也很简单，自己找个目录，然后新建一个config.json文件，名字可以自己取。如下：</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  "server":"my_server_ip",</span><br><span class="line">  "server_port":8388,</span><br><span class="line">  "local_port":1080,</span><br><span class="line">  "password":"password",</span><br><span class="line">  "timeout":600,</span><br><span class="line">  "method":"table"</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>这里面也是非常直观的，一般只要该server和password，其中服务器端的server的地址就是服务器的IP地址。还有method是传输的加密方式，一般也要改。可选择“bf-cfb”,“aes-256-cfb”,“des-cfb”,“rc4″,等等。默认是一种不安全的加密，推荐用“aes-256-cfb”</p>
+</li>
+<li><p>配置完以后就在这个文件的目录下执行，就能启动服务了，当然也可选择后台服务运行</p>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span>在终端中启动服务</span><br><span class="line">ssserver -c /etc/shadowsocks/config.json</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span>在后台启动服务，如果在终端中启动服务的话如果退出当前终端的话服务就被杀死了，所以为了保持服务的继续存在，需要将服务在后台运行。</span><br><span class="line">nohup ssserver -c /usr/local/lib/python2.7/dist-packages/shadowsocks/config.json &gt; log &amp;</span><br></pre></td></tr></table></figure>
+
+<p>###客户端配置</p>
+<ul>
+<li><p>客户端中的配置看具体情况了，向Ipad或者android都有比较方便的客户端，直接改一下地址就行。</p>
+</li>
+<li><p>但是在PC端 的话除了运行客户端软件外，当你在浏览器中浏览网页时还需要配置一下浏览器，这里我用的谷歌浏览器，用了SwitchyOmega这个插件，总体感觉挺好用，就是在新建一个代理，IP地址填本地主机127.0.0.1就行，端口为本地的那个文件的本地端口。</p>
+</li>
+<li><p>说道本地文件，这里作为客户端依旧需要服务器的那个文件，新建配置文件，然后在相应的目录执行这个命令就能将客户端与服务器连接起来。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span>后台执行命令</span><br><span class="line"> nohup sslocal -s IP地址 -p 服务器端口号 -k 密码 &gt; logs &amp;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>另外，加入你比较懒的话，不想每次都开机时都重新手动去执行一次这个命令的话，你可以创建一个shell脚本，然后写入/etc/rc.local 这个文件中去，让它开机自动启动。</p>
+</li>
+<li><p>在浏览器插件中设置相应的过滤规则就能方便的翻墙了。其中浏览器设置方式为sock5方式。</p>
+</li>
+</ul>
+
+            
+
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">标签</span><br/>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/VPS/">VPS</a> <a class="tag tag--primary tag--small t-link" href="/tags/shadowsocks/">shadowsocks</a> <a class="tag tag--primary tag--small t-link" href="/tags/翻墙/">翻墙</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/12/27/vim配置小记/"
+                    data-tooltip="vim配置小记"
+                    aria-label="上一篇: vim配置小记"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/05/16/Android-NDK入门/"
+                    data-tooltip="Android NDK 入门"
+                    aria-label="下一篇: Android NDK 入门"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2015/07/13/shadowsocks翻墙教程/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2015/07/13/shadowsocks翻墙教程/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2015/07/13/shadowsocks翻墙教程/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 zhangliukun. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/12/27/vim配置小记/"
+                    data-tooltip="vim配置小记"
+                    aria-label="上一篇: vim配置小记"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/05/16/Android-NDK入门/"
+                    data-tooltip="Android NDK 入门"
+                    aria-label="下一篇: Android NDK 入门"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2015/07/13/shadowsocks翻墙教程/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2015/07/13/shadowsocks翻墙教程/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2015/07/13/shadowsocks翻墙教程/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2015/07/13/shadowsocks翻墙教程/"
+                        aria-label="分享到 Facebook"
+                    >
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>分享到 Facebook</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2015/07/13/shadowsocks翻墙教程/"
+                        aria-label="分享到 Weibo"
+                    >
+                        <i class="fab fa-weibo" aria-hidden="true"></i><span>分享到 Weibo</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2015/07/13/shadowsocks翻墙教程/"
+                        aria-label="分享到 Qzone"
+                    >
+                        <i class="fa fa-star" aria-hidden="true"></i><span>分享到 Qzone</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+            <h4 id="about-card-name">zhangliukun</h4>
+        
+            <div id="about-card-bio"><p>天蝎座？</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>学生</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br/>
+                Hangzhou
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-opoomiy5imbn3xwjxebdjebgsd1hwgcbosrvoydvgbs5mjvuui1wxks1q9cr.min.js"></script>
+<!--SCRIPTS END-->
+
+
+    
+
+
+
+
+    </body>
+</html>

@@ -1,0 +1,656 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="六锟小站">
+    <title>java垃圾回收机制 - 六锟小站</title>
+    <meta name="author" content="zhangliukun">
+    
+    
+        <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
+    
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"简介垃圾回收机制主要完成下面两件事情。\n\n跟踪并监控每个java对象，当某个对象处于不可达状态是，回收所占用内存\n清理内存分配，回收过程中产生的内存碎片\n\n\n垃圾回收机制需要完成以上两个工作，所以工作量不算太小，因此垃圾回收算法成为限制java程序运行效率的重要因素。一个高效的垃圾回收机制既能保证垃圾回收的快速运行，避免内存的分配回收成为性能瓶颈以及导致应用程序产生停顿。\n垃圾回收器的基本算法可供选择的设计\n串行(Serial)回收和并向(Parallel)回收：串行回收就是不管有多少个CPU，都只用一个CPU来执行垃圾回收操作，而并行回收就是吧整个工作拆分给多个CPU进行回收。效率高但是复杂度增加，另有一些副作用入内存碎片增加。\n并发执行(Concurrent)和应用程序停止(Stop-the-world)：(S)这种方式在回收时会导致应用程序暂停。并发执行的垃圾回收虽然不会导致应用程序暂停，但是由于并发执行垃圾回收需要解决和应用程序的执行冲突，因此并发执行的开销要高并且也需要更多的堆内存。\n压缩(Compacting)/不压缩(Non-compacting)和复制(Copying)：为了减少内存碎片，支持压缩的垃圾回收器会吧所有的活的对象搬到一起，然后将之前占用的内存全部回收，不要锁的垃圾回收器只是回收内存，这样回收来的内存不可能是连续的，会有较多的内存碎片，不压缩的机制回收快但分配内存时就会慢，而且不能解决内存碎片的问题。复制垃圾回收机制会将所有可达的对象复制到另一块内存中，这种方式的优点是垃圾回收时不会产生内存碎片，缺点是需要复制数据和额外的内存。\n\n具体的回收方式\n复制：将对内存分为两份，从根处开始遍历每个关联的可达对象，将空间A中的可达对象复制到B中，然后回收整个A。这种方式遍历空间的成本小，但是需要巨大的空间和内存\n标记清除：也就是不压缩回收方式，垃圾回收器先从根开始访问所有的可达对象，并将它们标记为可达状态，然后遍历一次整个内存区域，对所有的没有标记为可达对象进行回收处理。这种方式无需大规模复制操作，且内存利用率高。但是需要两次遍历内存空间，遍历成本大，造成应用程序暂停的时间随着堆空间的大小线性增大。而且容易产生内存碎片。\n标记压缩：压缩的回收方式，这种方式在上一种的基础上会另外将标记的活动对象搬迁到一起，也称为内存压缩，减少了内存碎片。\n\n堆内存的分代回收可以看出上述的方式都各有利弊，现行的来及回收器采用分代的方式来采用不同的回收设计。分代的基本思路是根据对象生存的时间长短，把堆内存分为三个代：Young,Old,Permanent\n这种“分代回收“基于如下两个事实：\n\n绝大多数的对象不会被长时间引用，这些对象在其Young期间就会被回收。\n生存时间长的对象和短的对象之间很少存在相互引用的情况。\n\n上面两种情况不仅在java中如此，在其他面向对象的编程语言中也是这样。\n下面介绍一下三个代：\n\nYoung代: 对于Young代采用复制算法只需遍历那些处于可达状态的对象，而这些对象的数量比较少，复制成本也不大，因此能充分发挥复制算法的优点。\nOld代: 如果Young代中的对象经过数次垃圾回收依然没有被回收掉，就会被转移到Old代，Old代的空间比Young代的空间更大。\nPermanent代: Permanent代主要用于装载Class，方法等信息，默认为64M，垃圾回收器通常不会回收这里面的对象。\n\n常见的垃圾回收器这里列举一些常见的垃圾回收器，考虑到篇幅就只列一下名字好了。\n\n串行回收器(Serial Collector)\n并行回收器(Parallel Collector)\n并行压缩回收器(Parallel Compacting Collector)\n并发标识-清理(Mark-Sweep)回收器(CMS)\n\n内存管理小技巧更好的管理java虚拟机的内存才能提高java程序的运行性能。下面列出一些小技巧：\n\n尽量使用直接量  ：当需要使用基本类型的数据时，不应该采用new的方式来创建对象，而应该用直接量来创建，如String str = ”test“,这样的话JVM会将这个字符串放在缓冲池中，如果用new的话不仅会放在缓冲池中还会在堆内存中开辟一个数组来保存它。\n使用StirngBuilder和StringBuffer进行字符串连接  : 这个的话就是减少运行时生成的临时变量。\n尽早释放无用的对象的引用  ： 大部分时候方法的局部变量是不需要手动去设置为null的，但是在一些方法后还要运行耗时操作时可能就需要手动去释放了。\n尽量少的使用静态变量  ： 静态变量很有肯能会存入Permanent代，可能会使垃圾回收器不能回收此对象。\n避免在经常调用的方法，循环中创建java对象  ：可能会导致不断地分配内存空间导致程序的性能受到影响。\n缓存经常使用的对象  ：比如缓存一些数据库连接啊之类的。\n尽量不要使用finalize方法  ：这样会家中垃圾回收器的负担，造成程序暂停之类的。\n考虑使用SoftReference ：当内存足够时，它的功能等同与普通引用，当内存不够时，他会牺牲自己，释放引用所引用的对象。\n\n","dateCreated":"2015-03-15T20:45:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2015-03-15T20:45:00+08:00","description":"简介垃圾回收机制主要完成下面两件事情。\n\n跟踪并监控每个java对象，当某个对象处于不可达状态是，回收所占用内存\n清理内存分配，回收过程中产生的内存碎片\n","headline":"java垃圾回收机制","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2015/03/15/java垃圾回收机制/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2015/03/15/java垃圾回收机制/","keywords":"java, 内存管理"}</script>
+    <meta name="description" content="java来及回收机制与内存管理">
+<meta name="keywords" content="java,内存管理">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="java垃圾回收机制">
+<meta property="og:url" content="http://zhangliukun.cn/2015/03/15/java垃圾回收机制/index.html">
+<meta property="og:site_name" content="六锟小站">
+<meta property="og:description" content="java来及回收机制与内存管理">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:updated_time" content="2019-08-20T12:14:42.847Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="java垃圾回收机制">
+<meta name="twitter:description" content="java来及回收机制与内存管理">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="http://zhangliukun.cn/assets/images/avatar.jpg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-4iwpnc93lrhj5xhp85jwjyjr2detotwl3e6te5tkbp5mthm9fmtbqzvsi9tc.min.css">
+    <!--STYLES END-->
+    
+
+    
+
+    
+        
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a
+            class="header-title-link"
+            href="/ "
+            aria-label=""
+        >
+            六锟小站
+        </a>
+    </div>
+    
+        
+            <a
+                class="header-right-picture "
+                href="#about"
+                aria-label="打开链接: /#about"
+            >
+        
+        
+            <img class="header-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a
+                    href="/#about"
+                    aria-label="阅读有关作者的更多信息"
+                >
+                    <img class="sidebar-profile-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+                </a>
+                <h4 class="sidebar-profile-name">zhangliukun</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>天蝎座？</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="首页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">首页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-tags"
+                            
+                            title="标签"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">标签</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-archives"
+                            
+                            title="归档"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">归档</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="#about"
+                            
+                            title="关于"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">关于</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/zhangliukun" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.facebook.com/zhang.zale" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fab fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/assets/love/index.html"
+                            title="Love"
+                        >
+                    
+                        <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Love</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/mailto"
+                            title="邮箱"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">邮箱</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            java垃圾回收机制
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2015-03-15T20:45:00+08:00">
+	
+		    3月 15, 2015
+    	
+    </time>
+    
+        <span>发布在 </span>
+        
+    <a class="category-link" href="/categories/java/">java</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>垃圾回收机制主要完成下面两件事情。</p>
+<ul>
+<li>跟踪并监控每个java对象，当某个对象处于不可达状态是，回收所占用内存</li>
+<li>清理内存分配，回收过程中产生的内存碎片</li>
+</ul>
+<a id="more"></a>
+<p>垃圾回收机制需要完成以上两个工作，所以工作量不算太小，因此垃圾回收算法成为限制java程序运行效率的重要因素。一个高效的垃圾回收机制既能保证垃圾回收的快速运行，避免内存的分配回收成为性能瓶颈以及导致应用程序产生停顿。</p>
+<h2 id="垃圾回收器的基本算法"><a href="#垃圾回收器的基本算法" class="headerlink" title="垃圾回收器的基本算法"></a>垃圾回收器的基本算法</h2><h3 id="可供选择的设计"><a href="#可供选择的设计" class="headerlink" title="可供选择的设计"></a>可供选择的设计</h3><ul>
+<li><strong><em>串行(Serial)回收和并向(Parallel)回收</em></strong>：串行回收就是不管有多少个CPU，都只用一个CPU来执行垃圾回收操作，而并行回收就是吧整个工作拆分给多个CPU进行回收。效率高但是复杂度增加，另有一些副作用入内存碎片增加。</li>
+<li><strong><em>并发执行(Concurrent)和应用程序停止(Stop-the-world)</em></strong>：(S)这种方式在回收时会导致应用程序暂停。并发执行的垃圾回收虽然不会导致应用程序暂停，但是由于并发执行垃圾回收需要解决和应用程序的执行冲突，因此并发执行的开销要高并且也需要更多的堆内存。</li>
+<li><strong><em>压缩(Compacting)/不压缩(Non-compacting)和复制(Copying)</em></strong>：为了减少内存碎片，支持压缩的垃圾回收器会吧所有的活的对象搬到一起，然后将之前占用的内存全部回收，不要锁的垃圾回收器只是回收内存，这样回收来的内存不可能是连续的，会有较多的内存碎片，不压缩的机制回收快但分配内存时就会慢，而且不能解决内存碎片的问题。复制垃圾回收机制会将所有可达的对象复制到另一块内存中，这种方式的优点是垃圾回收时不会产生内存碎片，缺点是需要复制数据和额外的内存。</li>
+</ul>
+<h3 id="具体的回收方式"><a href="#具体的回收方式" class="headerlink" title="具体的回收方式"></a>具体的回收方式</h3><ul>
+<li><strong><em>复制</em></strong>：将对内存分为两份，从根处开始遍历每个关联的可达对象，将空间A中的可达对象复制到B中，然后回收整个A。这种方式遍历空间的成本小，但是需要巨大的空间和内存</li>
+<li><strong><em>标记清除</em></strong>：也就是不压缩回收方式，垃圾回收器先从根开始访问所有的可达对象，并将它们标记为可达状态，然后遍历一次整个内存区域，对所有的没有标记为可达对象进行回收处理。这种方式无需大规模复制操作，且内存利用率高。但是需要两次遍历内存空间，遍历成本大，造成应用程序暂停的时间随着堆空间的大小线性增大。而且容易产生内存碎片。</li>
+<li><strong><em>标记压缩</em></strong>：压缩的回收方式，这种方式在上一种的基础上会另外将标记的活动对象搬迁到一起，也称为内存压缩，减少了内存碎片。</li>
+</ul>
+<h2 id="堆内存的分代回收"><a href="#堆内存的分代回收" class="headerlink" title="堆内存的分代回收"></a>堆内存的分代回收</h2><p>可以看出上述的方式都各有利弊，现行的来及回收器采用分代的方式来采用不同的回收设计。分代的基本思路是根据对象生存的时间长短，把堆内存分为三个代：Young,Old,Permanent</p>
+<p>这种“分代回收“基于如下两个事实：</p>
+<ol>
+<li>绝大多数的对象不会被长时间引用，这些对象在其Young期间就会被回收。</li>
+<li>生存时间长的对象和短的对象之间很少存在相互引用的情况。</li>
+</ol>
+<p>上面两种情况不仅在java中如此，在其他面向对象的编程语言中也是这样。</p>
+<p>下面介绍一下三个代：</p>
+<ul>
+<li><strong><em>Young代</em></strong>: 对于Young代采用复制算法只需遍历那些处于可达状态的对象，而这些对象的数量比较少，复制成本也不大，因此能充分发挥复制算法的优点。</li>
+<li><strong><em>Old代</em></strong>: 如果Young代中的对象经过数次垃圾回收依然没有被回收掉，就会被转移到Old代，Old代的空间比Young代的空间更大。</li>
+<li><strong><em>Permanent代</em></strong>: Permanent代主要用于装载Class，方法等信息，默认为64M，垃圾回收器通常不会回收这里面的对象。</li>
+</ul>
+<h2 id="常见的垃圾回收器"><a href="#常见的垃圾回收器" class="headerlink" title="常见的垃圾回收器"></a>常见的垃圾回收器</h2><p>这里列举一些常见的垃圾回收器，考虑到篇幅就只列一下名字好了。</p>
+<ul>
+<li><strong><em>串行回收器(Serial Collector)</em></strong></li>
+<li><strong><em>并行回收器(Parallel Collector)</em></strong></li>
+<li><strong><em>并行压缩回收器(Parallel Compacting Collector)</em></strong></li>
+<li><strong><em>并发标识-清理(Mark-Sweep)回收器(CMS)</em></strong></li>
+</ul>
+<h2 id="内存管理小技巧"><a href="#内存管理小技巧" class="headerlink" title="内存管理小技巧"></a>内存管理小技巧</h2><p>更好的管理java虚拟机的内存才能提高java程序的运行性能。下面列出一些小技巧：</p>
+<ul>
+<li><strong><em>尽量使用直接量</em></strong>  ：当需要使用基本类型的数据时，不应该采用new的方式来创建对象，而应该用直接量来创建，如String str = ”test“,这样的话JVM会将这个字符串放在缓冲池中，如果用new的话不仅会放在缓冲池中还会在堆内存中开辟一个数组来保存它。</li>
+<li><strong><em>使用StirngBuilder和StringBuffer进行字符串连接</em></strong>  : 这个的话就是减少运行时生成的临时变量。</li>
+<li><strong><em>尽早释放无用的对象的引用</em></strong>  ： 大部分时候方法的局部变量是不需要手动去设置为null的，但是在一些方法后还要运行耗时操作时可能就需要手动去释放了。</li>
+<li><strong><em>尽量少的使用静态变量</em></strong>  ： 静态变量很有肯能会存入Permanent代，可能会使垃圾回收器不能回收此对象。</li>
+<li><strong><em>避免在经常调用的方法，循环中创建java对象</em></strong>  ：可能会导致不断地分配内存空间导致程序的性能受到影响。</li>
+<li><strong><em>缓存经常使用的对象</em></strong>  ：比如缓存一些数据库连接啊之类的。</li>
+<li><strong><em>尽量不要使用finalize方法</em></strong>  ：这样会家中垃圾回收器的负担，造成程序暂停之类的。</li>
+<li><strong><em>考虑使用SoftReference</em></strong> ：当内存足够时，它的功能等同与普通引用，当内存不够时，他会牺牲自己，释放引用所引用的对象。</li>
+</ul>
+
+            
+
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">标签</span><br/>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/java/">java</a> <a class="tag tag--primary tag--small t-link" href="/tags/内存管理/">内存管理</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/04/26/hibernate入门/"
+                    data-tooltip="hibernate入门"
+                    aria-label="上一篇: hibernate入门"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/02/15/适配器模式/"
+                    data-tooltip="适配器模式"
+                    aria-label="下一篇: 适配器模式"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2015/03/15/java垃圾回收机制/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2015/03/15/java垃圾回收机制/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2015/03/15/java垃圾回收机制/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 zhangliukun. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/04/26/hibernate入门/"
+                    data-tooltip="hibernate入门"
+                    aria-label="上一篇: hibernate入门"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/02/15/适配器模式/"
+                    data-tooltip="适配器模式"
+                    aria-label="下一篇: 适配器模式"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2015/03/15/java垃圾回收机制/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2015/03/15/java垃圾回收机制/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2015/03/15/java垃圾回收机制/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2015/03/15/java垃圾回收机制/"
+                        aria-label="分享到 Facebook"
+                    >
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>分享到 Facebook</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2015/03/15/java垃圾回收机制/"
+                        aria-label="分享到 Weibo"
+                    >
+                        <i class="fab fa-weibo" aria-hidden="true"></i><span>分享到 Weibo</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2015/03/15/java垃圾回收机制/"
+                        aria-label="分享到 Qzone"
+                    >
+                        <i class="fa fa-star" aria-hidden="true"></i><span>分享到 Qzone</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+            <h4 id="about-card-name">zhangliukun</h4>
+        
+            <div id="about-card-bio"><p>天蝎座？</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>学生</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br/>
+                Hangzhou
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-opoomiy5imbn3xwjxebdjebgsd1hwgcbosrvoydvgbs5mjvuui1wxks1q9cr.min.js"></script>
+<!--SCRIPTS END-->
+
+
+    
+
+
+
+
+    </body>
+</html>

@@ -1,0 +1,636 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="六锟小站">
+    <title>深入理解Java虚拟机 读书笔记（一）走近Java - 六锟小站</title>
+    <meta name="author" content="zhangliukun">
+    
+    
+        <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
+    
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"走近 JavaJava 技术体系广义上讲，Clojure、JRuby、Groovy等运行于 Java 虚拟机上面的语言都属于 Java 技术体系中的一员，传统意义上面讲，Sun 官方定义的技术体系包括：\n\nJava 程序设计语言\n各种硬件平台上面的 Java 虚拟机\nClass 文件格式\nJava API 类库\n第三方 Java 类库\n\n\n其中 JDK 是用于支持 Java 程序开发的最小环境，JRE 是支持 Java 程序运行的标准环境。Java 技术体系可以分为4个平台，分别为：\n\nJava Card：支持一些 Java 程序 (Applets）运行在小内存设备上的平台。\nJava ME：以前非智能机移动端平台，对 Java API 有所精简，简称 J2ME。\nJava SE：面向桌面级应用（如 Windows 下的应用程序）的 Java 平台，提供了完整的 Java 核心 API，简称 J2SE。\nJave EE：支持使用多层架构的企业应用如（ERP、CRM）的 Java 平台，提供并大量扩展了 Java SE API，这些扩展一般以 javax.* 作为包名，而以 java.* 为包名的包都是 Java SE API 的核心包，由于历史原因，一部分扩展包进入了核心包，所以核心包中也包含了很多 javax.* 的包名。\n\nJava 发展史OpenJDK：2006年 JavaOne 大会之后 Sun 公司建立的对 Java 各个开源部分源码进行独立管理的组织，在 JDK1.7 中，Sun JDK 和 OpenJDK 除了文件头和版权注释外其他基本一样，本质上就是同一套代码库开发的产品。Oracle：2009年 Oracle公司收购 Sun公司。\nJava 虚拟机发展史\nSun Classic／Exact VM：世界第一款商用 Java 虚拟机，是 Java 1.2之前 Sun JDK 中唯一的虚拟机，只能使用纯解释器的方式执行 Java 代码，需要外挂才能使用 JIT 编译器，但是解释器和编译器不能配合工作导致如果使用编译器执行会对每个方法每行代码都进行编译，虽然 JIT 能够输出本地代码，但是因为响应速度问题没有编译耗时稍高的优化技术导致效率和传统 C／C++ 差距很大，故“Java 语言很慢”的形象建立起来了。\nSun HotSpot VM：最初由第三方小公司开发的使用最广泛的 Java 虚拟机，HotSpot 打败了 Exact VM 成为了主要支持的 VM 产品，HotSpot VM 的热点代码探测能力可以通过执行计数器找出最具有编译价值的代码，然后通知 JIT 编译器以方法为单位进行编译，如果一个方法被频繁调用或者方法中有效循环次数很多，将会分别触发标准编译和 OSR（栈上替换）编译动作，通过编译器与解释器的有效的协同工作，可在最优化响应时间和最佳性能中取得平衡。\nSun Mobile-Embedded VM／Meta-Curcular VM：Sun 公司研发的虚拟机不止针对服务器、桌面领域的商用虚拟机，还有针对移动和嵌入式市场的，还有一些则是仅仅用于研究、验证某种技术和观点的，又或是作为一些规范实现的。\nBEA JRockit／IBM J9 VM：除了 Sun 公司自己开发的各种虚拟机，还有其他组织公司也研发过虚拟机，比较著名的就是 BEA 和 IBM 公司。\nAzul VM／BEA Liquid VM：这些虚拟机是针对特定硬件平台专有的虚拟机，在 HotSpot上面进行了大量的改进，可谓真正的高性能武器。\nApahe Harmony／Google Android Dalvik VM：这两个只能称作“虚拟机”，而不是“Java 虚拟机”。在 Android 4.4之前，Android 使用的都是 Dalvik VM，它的名字来源于冰岛一个名字叫 Dalvik 的小渔村，它不是一个 Java 虚拟机，它没有遵循 Java 虚拟机的规范，不能直接执行 Java 的 Class 文件，使用的是寄存器而不是 JVM 中常见的栈架构，但是它执行的 Dex（Dalvik Executable）文件可以通过 Class 文件转化而来。\nMicrosoft JVM 及其他：微软曾是 Java 技术的铁杆支持者，后来被 Sun 公司告了，赔了很多很多钱，于是微软就掰了 Java ，发展了自己的 .NET。模块化模块化对于解决系统和平台越来越复杂的问题是十分重要的，在现在的开发中这个思想越来越得到重视，Java 模块化应该在以后会正式走向舞台。混合语言越来越多的基于 Java 虚拟机的语言被应用与开发，Java 平台上面的多语言混合编程正成为主流，之间的交互不存在任何困难因为它们都运行在一个虚拟机上面。多核并行CPU硬件的发展从高频率转向了多核心，并行编程已成为主流，JDK1.7 加入的 Fork／Join模式是处理并行编程的经典方法，Java 8 中支持了 Lambda 表达式，更加有利于函数式编程，天然的适合并行运行。在 JDK 外围，如 Hadoop 这样的并行框架也越来越多。另外也出现了像 Scala 等天生就具备并行能力的语言。64位虚拟机Java 程序运行在 64 位虚拟机上面需要付出额外的代价，首先是内存问题，由于指针膨胀和各种数据类型对齐补白的原因，需要消耗多于 32 位内存的 10%～30% 的内存开销，其次是运行速度也全面落后于 32 位虚拟机大约15%。现在对于内存的需求扩大导致超过了4GB，所以64位虚拟机的需求还是很迫切的，Java 1.6以后提供了普通对象的指针压缩功能，在执行代码时，动态植入压缩指令来节省内存，但是开启指针压缩会增加执行代码的数量，因为在所有的 Java 堆、指向 Java 堆内对象的指针都会被压缩，这些指针的访问需要更多的代码才可以实现，在读写字段、实例方法调用、子类型检查等操作都会有影响，因为对象实例指向对象类型的引用也被压缩了。自己编译 JDK想要探寻 JDK 内部的实现机制，最便捷的路径就是自己编译一套 JDK，这里就不记录具体步骤了。\n\n","dateCreated":"2017-02-20T23:12:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2017-02-20T23:12:00+08:00","description":"走近 JavaJava 技术体系广义上讲，Clojure、JRuby、Groovy等运行于 Java 虚拟机上面的语言都属于 Java 技术体系中的一员，传统意义上面讲，Sun 官方定义的技术体系包括：\n\nJava 程序设计语言\n各种硬件平台上面的 Java 虚拟机\nClass 文件格式\nJava API 类库\n第三方 Java 类库","headline":"深入理解Java虚拟机 读书笔记（一）走近Java","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/","keywords":"java, java 虚拟机"}</script>
+    <meta name="description" content="《深入理解Java虚拟机》读书笔记-走近Java">
+<meta name="keywords" content="java,java 虚拟机">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="深入理解Java虚拟机 读书笔记（一）走近Java">
+<meta property="og:url" content="http://zhangliukun.cn/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/index.html">
+<meta property="og:site_name" content="六锟小站">
+<meta property="og:description" content="《深入理解Java虚拟机》读书笔记-走近Java">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:image" content="http://zhangliukun.cn/image/java%E6%8A%80%E6%9C%AF%E4%BD%93%E7%B3%BB.png">
+<meta property="og:updated_time" content="2019-08-20T12:14:42.853Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入理解Java虚拟机 读书笔记（一）走近Java">
+<meta name="twitter:description" content="《深入理解Java虚拟机》读书笔记-走近Java">
+<meta name="twitter:image" content="http://zhangliukun.cn/image/java%E6%8A%80%E6%9C%AF%E4%BD%93%E7%B3%BB.png">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="http://zhangliukun.cn/assets/images/avatar.jpg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-4iwpnc93lrhj5xhp85jwjyjr2detotwl3e6te5tkbp5mthm9fmtbqzvsi9tc.min.css">
+    <!--STYLES END-->
+    
+
+    
+
+    
+        
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a
+            class="header-title-link"
+            href="/ "
+            aria-label=""
+        >
+            六锟小站
+        </a>
+    </div>
+    
+        
+            <a
+                class="header-right-picture "
+                href="#about"
+                aria-label="打开链接: /#about"
+            >
+        
+        
+            <img class="header-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a
+                    href="/#about"
+                    aria-label="阅读有关作者的更多信息"
+                >
+                    <img class="sidebar-profile-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+                </a>
+                <h4 class="sidebar-profile-name">zhangliukun</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>天蝎座？</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="首页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">首页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-tags"
+                            
+                            title="标签"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">标签</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-archives"
+                            
+                            title="归档"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">归档</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="#about"
+                            
+                            title="关于"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">关于</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/zhangliukun" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.facebook.com/zhang.zale" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fab fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/assets/love/index.html"
+                            title="Love"
+                        >
+                    
+                        <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Love</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/mailto"
+                            title="邮箱"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">邮箱</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            深入理解Java虚拟机 读书笔记（一）走近Java
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2017-02-20T23:12:00+08:00">
+	
+		    2月 20, 2017
+    	
+    </time>
+    
+        <span>发布在 </span>
+        
+    <a class="category-link" href="/categories/java/">java</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h1 id="走近-Java"><a href="#走近-Java" class="headerlink" title="走近 Java"></a>走近 Java</h1><h2 id="Java-技术体系"><a href="#Java-技术体系" class="headerlink" title="Java 技术体系"></a>Java 技术体系</h2><p>广义上讲，Clojure、JRuby、Groovy等运行于 Java 虚拟机上面的语言都属于 Java 技术体系中的一员，传统意义上面讲，Sun 官方定义的技术体系包括：</p>
+<ul>
+<li>Java 程序设计语言</li>
+<li>各种硬件平台上面的 Java 虚拟机</li>
+<li>Class 文件格式</li>
+<li>Java API 类库</li>
+<li>第三方 Java 类库<a id="more"></a>
+<img src="/image/java%E6%8A%80%E6%9C%AF%E4%BD%93%E7%B3%BB.png" alt="java技术体系"></li>
+</ul>
+<p><strong>其中 JDK 是用于支持 Java 程序开发的最小环境，JRE 是支持 Java 程序运行的标准环境。</strong><br>Java 技术体系可以分为4个平台，分别为：</p>
+<ol>
+<li>Java Card：支持一些 Java 程序 (Applets）运行在小内存设备上的平台。</li>
+<li>Java ME：以前非智能机移动端平台，对 Java API 有所精简，简称 J2ME。</li>
+<li>Java SE：面向桌面级应用（如 Windows 下的应用程序）的 Java 平台，提供了完整的 Java 核心 API，简称 J2SE。</li>
+<li>Jave EE：支持使用多层架构的企业应用如（ERP、CRM）的 Java 平台，提供并大量扩展了 Java SE API，这些扩展一般以 javax.* 作为包名，而以 java.* 为包名的包都是 Java SE API 的核心包，由于历史原因，一部分扩展包进入了核心包，所以核心包中也包含了很多 javax.* 的包名。</li>
+</ol>
+<h2 id="Java-发展史"><a href="#Java-发展史" class="headerlink" title="Java 发展史"></a>Java 发展史</h2><p>OpenJDK：2006年 JavaOne 大会之后 Sun 公司建立的对 Java 各个开源部分源码进行独立管理的组织，在 JDK1.7 中，Sun JDK 和 OpenJDK 除了文件头和版权注释外其他基本一样，本质上就是同一套代码库开发的产品。<br>Oracle：2009年 Oracle公司收购 Sun公司。</p>
+<h2 id="Java-虚拟机发展史"><a href="#Java-虚拟机发展史" class="headerlink" title="Java 虚拟机发展史"></a>Java 虚拟机发展史</h2><ul>
+<li>Sun Classic／Exact VM：世界第一款商用 Java 虚拟机，是 Java 1.2之前 Sun JDK 中唯一的虚拟机，只能使用纯解释器的方式执行 Java 代码，需要外挂才能使用 JIT 编译器，但是解释器和编译器不能配合工作导致如果使用编译器执行会对每个方法每行代码都进行编译，虽然 JIT 能够输出本地代码，但是因为响应速度问题没有编译耗时稍高的优化技术导致效率和传统 C／C++ 差距很大，故“Java 语言很慢”的形象建立起来了。</li>
+<li>Sun HotSpot VM：最初由第三方小公司开发的使用最广泛的 Java 虚拟机，HotSpot 打败了 Exact VM 成为了主要支持的 VM 产品，HotSpot VM 的热点代码探测能力可以通过执行计数器找出最具有编译价值的代码，然后通知 JIT 编译器以方法为单位进行编译，如果一个方法被频繁调用或者方法中有效循环次数很多，将会分别触发标准编译和 OSR（栈上替换）编译动作，通过编译器与解释器的有效的协同工作，可在最优化响应时间和最佳性能中取得平衡。</li>
+<li>Sun Mobile-Embedded VM／Meta-Curcular VM：Sun 公司研发的虚拟机不止针对服务器、桌面领域的商用虚拟机，还有针对移动和嵌入式市场的，还有一些则是仅仅用于研究、验证某种技术和观点的，又或是作为一些规范实现的。</li>
+<li>BEA JRockit／IBM J9 VM：除了 Sun 公司自己开发的各种虚拟机，还有其他组织公司也研发过虚拟机，比较著名的就是 BEA 和 IBM 公司。</li>
+<li>Azul VM／BEA Liquid VM：这些虚拟机是针对特定硬件平台专有的虚拟机，在 HotSpot上面进行了大量的改进，可谓真正的高性能武器。</li>
+<li>Apahe Harmony／Google Android Dalvik VM：这两个只能称作“虚拟机”，而不是“Java 虚拟机”。在 Android 4.4之前，Android 使用的都是 Dalvik VM，它的名字来源于冰岛一个名字叫 Dalvik 的小渔村，它不是一个 Java 虚拟机，它没有遵循 Java 虚拟机的规范，不能直接执行 Java 的 Class 文件，使用的是寄存器而不是 JVM 中常见的栈架构，但是它执行的 Dex（Dalvik Executable）文件可以通过 Class 文件转化而来。</li>
+<li>Microsoft JVM 及其他：微软曾是 Java 技术的铁杆支持者，后来被 Sun 公司告了，赔了很多很多钱，于是微软就掰了 Java ，发展了自己的 .NET。<h2 id="模块化"><a href="#模块化" class="headerlink" title="模块化"></a>模块化</h2>模块化对于解决系统和平台越来越复杂的问题是十分重要的，在现在的开发中这个思想越来越得到重视，Java 模块化应该在以后会正式走向舞台。<h2 id="混合语言"><a href="#混合语言" class="headerlink" title="混合语言"></a>混合语言</h2>越来越多的基于 Java 虚拟机的语言被应用与开发，Java 平台上面的多语言混合编程正成为主流，之间的交互不存在任何困难因为它们都运行在一个虚拟机上面。<h2 id="多核并行"><a href="#多核并行" class="headerlink" title="多核并行"></a>多核并行</h2>CPU硬件的发展从高频率转向了多核心，并行编程已成为主流，JDK1.7 加入的 Fork／Join模式是处理并行编程的经典方法，Java 8 中支持了 Lambda 表达式，更加有利于函数式编程，天然的适合并行运行。在 JDK 外围，如 Hadoop 这样的并行框架也越来越多。另外也出现了像 Scala 等天生就具备并行能力的语言。<h2 id="64位虚拟机"><a href="#64位虚拟机" class="headerlink" title="64位虚拟机"></a>64位虚拟机</h2>Java 程序运行在 64 位虚拟机上面需要付出额外的代价，首先是内存问题，由于指针膨胀和各种数据类型对齐补白的原因，需要消耗多于 32 位内存的 10%～30% 的内存开销，其次是运行速度也全面落后于 32 位虚拟机大约15%。现在对于内存的需求扩大导致超过了4GB，所以64位虚拟机的需求还是很迫切的，Java 1.6以后提供了普通对象的指针压缩功能，在执行代码时，动态植入压缩指令来节省内存，但是开启指针压缩会增加执行代码的数量，因为在所有的 Java 堆、指向 Java 堆内对象的指针都会被压缩，这些指针的访问需要更多的代码才可以实现，在读写字段、实例方法调用、子类型检查等操作都会有影响，因为对象实例指向对象类型的引用也被压缩了。<h2 id="自己编译-JDK"><a href="#自己编译-JDK" class="headerlink" title="自己编译 JDK"></a>自己编译 JDK</h2>想要探寻 JDK 内部的实现机制，最便捷的路径就是自己编译一套 JDK，这里就不记录具体步骤了。</li>
+</ul>
+
+            
+
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">标签</span><br/>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/java/">java</a> <a class="tag tag--primary tag--small t-link" href="/tags/java-虚拟机/">java 虚拟机</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2017/02/22/《深入理解Java虚拟机》读书笔记（二）Java内存区域/"
+                    data-tooltip="深入理解Java虚拟机 读书笔记（二）Java内存区域"
+                    aria-label="上一篇: 深入理解Java虚拟机 读书笔记（二）Java内存区域"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2017/02/15/RecyclerView优雅封装/"
+                    data-tooltip="RecyclerView 优雅封装"
+                    aria-label="下一篇: RecyclerView 优雅封装"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 zhangliukun. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2017/02/22/《深入理解Java虚拟机》读书笔记（二）Java内存区域/"
+                    data-tooltip="深入理解Java虚拟机 读书笔记（二）Java内存区域"
+                    aria-label="上一篇: 深入理解Java虚拟机 读书笔记（二）Java内存区域"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2017/02/15/RecyclerView优雅封装/"
+                    data-tooltip="RecyclerView 优雅封装"
+                    aria-label="下一篇: RecyclerView 优雅封装"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/"
+                        aria-label="分享到 Facebook"
+                    >
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>分享到 Facebook</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/"
+                        aria-label="分享到 Weibo"
+                    >
+                        <i class="fab fa-weibo" aria-hidden="true"></i><span>分享到 Weibo</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/"
+                        aria-label="分享到 Qzone"
+                    >
+                        <i class="fa fa-star" aria-hidden="true"></i><span>分享到 Qzone</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+            <h4 id="about-card-name">zhangliukun</h4>
+        
+            <div id="about-card-bio"><p>天蝎座？</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>学生</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br/>
+                Hangzhou
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-opoomiy5imbn3xwjxebdjebgsd1hwgcbosrvoydvgbs5mjvuui1wxks1q9cr.min.js"></script>
+<!--SCRIPTS END-->
+
+
+    
+
+
+
+
+    </body>
+</html>

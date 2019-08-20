@@ -1,0 +1,710 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="六锟小站">
+    <title>Hibernate高级特性 - 六锟小站</title>
+    <meta name="author" content="zhangliukun">
+    
+    
+        <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
+    
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"1.Hibernate持久化实现1.1实体对象生命周期\n实体对象的3种状态\nTransient（自由状态）：实体对象在内存中自由存在，与数据库的记录无关。\nPersistent（持久状态）：实体对象处于Hibernate框架管理中。\nDetached（游离状态）：处于Persistent状态的对象，其对应的Session实例关闭后，就处于游离状态。\n\n\n\n\n\n\nVO与PO\n\n我们把处于Detached和Transient的称为VO（Value Object），而处于Persistent状态的对象称为持久对象PO（Persistence Object）\n\n\nVO与PO的区别：\n\nVO是相对独立的实体对象，处于非管理状态。\nPO是由Hibernate纳入其实体管理容器的对象，它代表了数据库中某条记录对应的实体，PO的变化在事物提交时将反映到实际数据库中。\n如果一个PO与其对应的Session实例分离，那么它将变成一个VO。\n\n\n\n1.2.实体对象识别\n实体身份识别\n\n引用比较（==）：判断两个变量是否引用了同一个对象实例。\n内容比较（equals）：判断两个对象的内容。\n在持久层角度而言，对于两个加载出来的实体对象，只要它们的主键值相同，则这两个等同。\n\n\n脏数据检查\n\n这里的脏数据并非指废弃或无用的数据，而是指一个数据对象所携带的信息发生改变之后的状态。比如在数据库中Load出一个实体对象然后对数据进行设置或者改变数值以后的话就称为所谓的脏数据。，事务提交以后，Hibernate会对session中的PO进检测，将变化的数据更新到数据库中。\n\n\n脏数据检查策略一般两种\n\n数据对象监控：实现方式大体是通过拦截器对数据对象设置值的方法进行拦截，一旦数据对象的设置值方法被调用，则将其标志位待更新状态，之后数据库操作时将对其更新到对应数据库表。\n\n数据库版本比对：在持久层框架中维持数据对象最近的读取版本，当数据提交时与此版本进行对比，如果发生变化则将其同步到数据库对应的库表。\nHibernate采取的是第二种检查策略。\n\n\n\nunsaved-value\n\n数据保存时，Hibernate将根据这个值来判断对象是否需要保存。首先Hibernate会取出目标对象的id，之后将与unsaved-value进行比对，如果相等，则认为目标对象尚未保存。如：user对象是之前由Hibernate从数据库中获取，同时，此user对象的若干个关联对象address也被加载，此时我们向user对象新增一个address对象，此时调用session.save(user)，Hibernate会根据unsaved-value判断user对象的数个address关联对象中，哪些需要执行save操作，哪些不需要。\n对于新加入的address对象来说，由于id尚未赋值，因此为null，与我们设定的unsaved-value（null）相同，因此Hibernate视其为一个未保存对象，将其生成insert语句并执行。\n对于save操作而言，如果对象已经和session对象关联，则不需要进行具体的操作，因为之后的session.flush过程中，Hibernate会对此实体容器中的对象进行遍历，查处发生变化的实体，生成并执行相应的update语句。\n\n\n\n1.3数据缓存\n数据缓存概述\n\n对于ORM实现而言，缓存显得比较重要，因为ORM实现往往需要借助更加复杂的机制，以实现内部状态的管理，OR关系的映射。所以需要弥补这些性能差距。\n缓存是数据库数据在内存中的临时容器，它处于数据库和数据访问层之间。ORM在进行数据读取时，会根据缓存管理策略，首先在缓存中查询。\n\n\n数据缓存策略\n\n事务级缓存：事务可能是一个数据库事务，也可能是某个应用级事务，对于Hibernate来说，这里的事务级缓存是基于Session生命周期实现的，每个Session会在内部维持一个数据缓存，此缓存随着Session的创建而存在，也称内部缓存。\n应用级缓存：此缓存可由多个事务共享。在Hibernate中，应用级缓存在SessionFactory层实现，所有由此SessionFactory创建的Session实例共享此缓存，但是在多实例并发运行的环境中，应用级缓存无法使用，所以引入了分布式缓存。\n分布式缓存：在多个应用实例，多个JVM之间共享的缓存模式。分布式缓存由多个应用级缓存实例组成集群，通过某种远程机制（RMI，JMS）实现各个缓存实例之间的数据同步，但是性能方面开销大，实际使用有待考证。\n\n\n\n1.4Hibernate数据缓存\nHibernate数据缓存分为两个层次：\n\n内部缓存（Session Level，也成为一级缓存）\n二级缓存（SessionFactory Level，也称二级缓存）\n\n\n第三方缓存实现：\n\nHibernate本身并未提供二级缓存的产品化实现（只是提供了一个基于Hashtable的简单缓存以供调试），为众多第三方缓存组件提供了接入接口。如EHCache，OSCache，JBoss Cache，SwarmCache等等。\n\n\n缓存同步策略：\n\nread-only： 只读，对于不会发生改变的数据，可使用只读型缓存。\nnonstrict-read-write： 如果程序对并发访问的同步要求不严格，且数据更新频率较低，可采用此选项获得较好的性能。\nread-write：严格可读写缓存，基于时间戳判断，实现了“read committed”事务隔离登记，可用于对数据同步要求严格的情况，但不支持分布式缓存。\ntransactional： 事务型缓存，必须运行在JTA事务环境中。缓存相关的操作也被添加到了事务之中（此时的缓存类似于一个内存数据库），如果由于某种原因导致事务失败，则可以连缓冲池中的数据一起回滚，适用于对关键数据进行缓存。\n\n\n事务管理概述\n\n事务包含四个特性：即ACID\nAtomic（原子性）：操作要么成功，要么失败。\nConsistency（一致性）：只有合法数据才能写入。\nIsolation（隔离性）：事务允许多个用户对同一个数据的并发访问，而不破坏正确性和完整性。\nDurability（持久性）：事务结束后，数据能持久化。\n\n\n\n\n\n——to be continued\n","dateCreated":"2015-05-13T22:20:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2015-05-13T22:20:00+08:00","description":"1.Hibernate持久化实现1.1实体对象生命周期\n实体对象的3种状态\nTransient（自由状态）：实体对象在内存中自由存在，与数据库的记录无关。\nPersistent（持久状态）：实体对象处于Hibernate框架管理中。\nDetached（游离状态）：处于Persistent状态的对象，其对应的Session实例关闭后，就处于游离状态。\n\n\n","headline":"Hibernate高级特性","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2015/05/13/hibernate高级特性/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2015/05/13/hibernate高级特性/","keywords":"java, hibernate"}</script>
+    <meta name="description" content="Hibernate高级特性">
+<meta name="keywords" content="java,hibernate">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="Hibernate高级特性">
+<meta property="og:url" content="http://zhangliukun.cn/2015/05/13/hibernate高级特性/index.html">
+<meta property="og:site_name" content="六锟小站">
+<meta property="og:description" content="Hibernate高级特性">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:updated_time" content="2019-08-20T12:14:42.846Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hibernate高级特性">
+<meta name="twitter:description" content="Hibernate高级特性">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="http://zhangliukun.cn/assets/images/avatar.jpg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-4iwpnc93lrhj5xhp85jwjyjr2detotwl3e6te5tkbp5mthm9fmtbqzvsi9tc.min.css">
+    <!--STYLES END-->
+    
+
+    
+
+    
+        
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a
+            class="header-title-link"
+            href="/ "
+            aria-label=""
+        >
+            六锟小站
+        </a>
+    </div>
+    
+        
+            <a
+                class="header-right-picture "
+                href="#about"
+                aria-label="打开链接: /#about"
+            >
+        
+        
+            <img class="header-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a
+                    href="/#about"
+                    aria-label="阅读有关作者的更多信息"
+                >
+                    <img class="sidebar-profile-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+                </a>
+                <h4 class="sidebar-profile-name">zhangliukun</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>天蝎座？</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="首页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">首页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-tags"
+                            
+                            title="标签"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">标签</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-archives"
+                            
+                            title="归档"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">归档</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="#about"
+                            
+                            title="关于"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">关于</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/zhangliukun" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.facebook.com/zhang.zale" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fab fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/assets/love/index.html"
+                            title="Love"
+                        >
+                    
+                        <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Love</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/mailto"
+                            title="邮箱"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">邮箱</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            Hibernate高级特性
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2015-05-13T22:20:00+08:00">
+	
+		    5月 13, 2015
+    	
+    </time>
+    
+        <span>发布在 </span>
+        
+    <a class="category-link" href="/categories/java/">java</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="1-Hibernate持久化实现"><a href="#1-Hibernate持久化实现" class="headerlink" title="1.Hibernate持久化实现"></a>1.Hibernate持久化实现</h2><h3 id="1-1实体对象生命周期"><a href="#1-1实体对象生命周期" class="headerlink" title="1.1实体对象生命周期"></a>1.1实体对象生命周期</h3><ul>
+<li>实体对象的3种状态<ul>
+<li><strong>Transient（自由状态）：</strong>实体对象在内存中自由存在，与数据库的记录无关。</li>
+<li><strong>Persistent（持久状态）：</strong>实体对象处于Hibernate框架管理中。</li>
+<li><strong>Detached（游离状态）：</strong>处于Persistent状态的对象，其对应的Session实例关闭后，就处于游离状态。</li>
+</ul>
+</li>
+</ul>
+<a id="more"></a>
+
+<ul>
+<li><p>VO与PO</p>
+<ul>
+<li>我们把处于Detached和Transient的称为VO（Value Object），而处于Persistent状态的对象称为持久对象PO（Persistence Object）</li>
+</ul>
+</li>
+<li><p>VO与PO的区别：</p>
+<ul>
+<li>VO是相对独立的实体对象，处于非管理状态。</li>
+<li>PO是由Hibernate纳入其实体管理容器的对象，它代表了数据库中某条记录对应的实体，PO的变化在事物提交时将反映到实际数据库中。</li>
+<li>如果一个PO与其对应的Session实例分离，那么它将变成一个VO。</li>
+</ul>
+</li>
+</ul>
+<h3 id="1-2-实体对象识别"><a href="#1-2-实体对象识别" class="headerlink" title="1.2.实体对象识别"></a>1.2.实体对象识别</h3><ul>
+<li><p>实体身份识别</p>
+<ol>
+<li>引用比较（==）：判断两个变量是否引用了同一个对象实例。</li>
+<li>内容比较（equals）：判断两个对象的内容。</li>
+<li>在持久层角度而言，对于两个加载出来的实体对象，只要它们的主键值相同，则这两个等同。</li>
+</ol>
+</li>
+<li><p>脏数据检查</p>
+<ul>
+<li>这里的脏数据并非指废弃或无用的数据，而是指一个数据对象所携带的信息发生改变之后的状态。比如在数据库中Load出一个实体对象然后对数据进行设置或者改变数值以后的话就称为所谓的脏数据。，事务提交以后，Hibernate会对session中的PO进检测，将变化的数据更新到数据库中。</li>
+</ul>
+</li>
+<li><p>脏数据检查策略一般两种</p>
+<ol>
+<li><p><strong>数据对象监控：</strong>实现方式大体是通过拦截器对数据对象设置值的方法进行拦截，一旦数据对象的设置值方法被调用，则将其标志位待更新状态，之后数据库操作时将对其更新到对应数据库表。</p>
+</li>
+<li><p><strong>数据库版本比对：</strong>在持久层框架中维持数据对象最近的读取版本，当数据提交时与此版本进行对比，如果发生变化则将其同步到数据库对应的库表。</p>
+<p>Hibernate采取的是第二种检查策略。</p>
+</li>
+</ol>
+</li>
+<li><p>unsaved-value</p>
+<ul>
+<li>数据保存时，Hibernate将根据这个值来判断对象是否需要保存。首先Hibernate会取出目标对象的id，之后将与unsaved-value进行比对，如果相等，则认为目标对象尚未保存。如：user对象是之前由Hibernate从数据库中获取，同时，此user对象的若干个关联对象address也被加载，此时我们向user对象新增一个address对象，此时调用session.save(user)，Hibernate会根据unsaved-value判断user对象的数个address关联对象中，哪些需要执行save操作，哪些不需要。</li>
+<li>对于新加入的address对象来说，由于id尚未赋值，因此为null，与我们设定的unsaved-value（null）相同，因此Hibernate视其为一个未保存对象，将其生成insert语句并执行。</li>
+<li>对于save操作而言，如果对象已经和session对象关联，则不需要进行具体的操作，因为之后的session.flush过程中，Hibernate会对此实体容器中的对象进行遍历，查处发生变化的实体，生成并执行相应的update语句。</li>
+</ul>
+</li>
+</ul>
+<h3 id="1-3数据缓存"><a href="#1-3数据缓存" class="headerlink" title="1.3数据缓存"></a>1.3数据缓存</h3><ul>
+<li><p>数据缓存概述</p>
+<ul>
+<li>对于ORM实现而言，缓存显得比较重要，因为ORM实现往往需要借助更加复杂的机制，以实现内部状态的管理，OR关系的映射。所以需要弥补这些性能差距。</li>
+<li>缓存是数据库数据在内存中的临时容器，它处于数据库和数据访问层之间。ORM在进行数据读取时，会根据缓存管理策略，首先在缓存中查询。</li>
+</ul>
+</li>
+<li><p>数据缓存策略</p>
+<ul>
+<li><strong>事务级缓存：</strong>事务可能是一个数据库事务，也可能是某个应用级事务，对于Hibernate来说，这里的事务级缓存是基于Session生命周期实现的，每个Session会在内部维持一个数据缓存，此缓存随着Session的创建而存在，也称内部缓存。</li>
+<li><strong>应用级缓存：</strong>此缓存可由多个事务共享。在Hibernate中，应用级缓存在SessionFactory层实现，所有由此SessionFactory创建的Session实例共享此缓存，但是在多实例并发运行的环境中，应用级缓存无法使用，所以引入了分布式缓存。</li>
+<li><strong>分布式缓存：</strong>在多个应用实例，多个JVM之间共享的缓存模式。分布式缓存由多个应用级缓存实例组成集群，通过某种远程机制（RMI，JMS）实现各个缓存实例之间的数据同步，但是性能方面开销大，实际使用有待考证。</li>
+</ul>
+</li>
+</ul>
+<h3 id="1-4Hibernate数据缓存"><a href="#1-4Hibernate数据缓存" class="headerlink" title="1.4Hibernate数据缓存"></a>1.4Hibernate数据缓存</h3><ul>
+<li><p>Hibernate数据缓存分为两个层次：</p>
+<ol>
+<li>内部缓存（Session Level，也成为一级缓存）</li>
+<li>二级缓存（SessionFactory Level，也称二级缓存）</li>
+</ol>
+</li>
+<li><p>第三方缓存实现：</p>
+<ul>
+<li>Hibernate本身并未提供二级缓存的产品化实现（只是提供了一个基于Hashtable的简单缓存以供调试），为众多第三方缓存组件提供了接入接口。如EHCache，OSCache，JBoss Cache，SwarmCache等等。</li>
+</ul>
+</li>
+<li><p>缓存同步策略：</p>
+<ol>
+<li><strong>read-only：</strong> 只读，对于不会发生改变的数据，可使用只读型缓存。</li>
+<li><strong>nonstrict-read-write：</strong> 如果程序对并发访问的同步要求不严格，且数据更新频率较低，可采用此选项获得较好的性能。</li>
+<li><strong>read-write：</strong>严格可读写缓存，基于时间戳判断，实现了“read committed”事务隔离登记，可用于对数据同步要求严格的情况，但不支持分布式缓存。</li>
+<li><strong>transactional：</strong> 事务型缓存，必须运行在JTA事务环境中。缓存相关的操作也被添加到了事务之中（此时的缓存类似于一个内存数据库），如果由于某种原因导致事务失败，则可以连缓冲池中的数据一起回滚，适用于对关键数据进行缓存。</li>
+</ol>
+</li>
+<li><p>事务管理概述</p>
+<ul>
+<li>事务包含四个特性：即ACID<ol>
+<li>Atomic（原子性）：操作要么成功，要么失败。</li>
+<li>Consistency（一致性）：只有合法数据才能写入。</li>
+<li>Isolation（隔离性）：事务允许多个用户对同一个数据的并发访问，而不破坏正确性和完整性。</li>
+<li>Durability（持久性）：事务结束后，数据能持久化。</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<p>——to be continued</p>
+
+            
+
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">标签</span><br/>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/hibernate/">hibernate</a> <a class="tag tag--primary tag--small t-link" href="/tags/java/">java</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/05/16/Android-NDK入门/"
+                    data-tooltip="Android NDK 入门"
+                    aria-label="上一篇: Android NDK 入门"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/04/26/hibernate入门/"
+                    data-tooltip="hibernate入门"
+                    aria-label="下一篇: hibernate入门"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2015/05/13/hibernate高级特性/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2015/05/13/hibernate高级特性/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2015/05/13/hibernate高级特性/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 zhangliukun. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/05/16/Android-NDK入门/"
+                    data-tooltip="Android NDK 入门"
+                    aria-label="上一篇: Android NDK 入门"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/04/26/hibernate入门/"
+                    data-tooltip="hibernate入门"
+                    aria-label="下一篇: hibernate入门"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2015/05/13/hibernate高级特性/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2015/05/13/hibernate高级特性/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2015/05/13/hibernate高级特性/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2015/05/13/hibernate高级特性/"
+                        aria-label="分享到 Facebook"
+                    >
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>分享到 Facebook</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2015/05/13/hibernate高级特性/"
+                        aria-label="分享到 Weibo"
+                    >
+                        <i class="fab fa-weibo" aria-hidden="true"></i><span>分享到 Weibo</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2015/05/13/hibernate高级特性/"
+                        aria-label="分享到 Qzone"
+                    >
+                        <i class="fa fa-star" aria-hidden="true"></i><span>分享到 Qzone</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+            <h4 id="about-card-name">zhangliukun</h4>
+        
+            <div id="about-card-bio"><p>天蝎座？</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>学生</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br/>
+                Hangzhou
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-opoomiy5imbn3xwjxebdjebgsd1hwgcbosrvoydvgbs5mjvuui1wxks1q9cr.min.js"></script>
+<!--SCRIPTS END-->
+
+
+    
+
+
+
+
+    </body>
+</html>

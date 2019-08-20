@@ -1,0 +1,756 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="六锟小站">
+    <title>深入理解Java虚拟机 读书笔记（五）虚拟机类加载机制 - 六锟小站</title>
+    <meta name="author" content="zhangliukun">
+    
+    
+        <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
+    
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"概述虚拟机把描述类的数据从 Class 文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的 Java 类型，这就是虚拟机的类加载机制。与那些编译时需要进行链接的语言不同，Java 里面类型的加载、链接和初始化过程都是在程序运行期间完成的，Java 的动态扩展语言特性就是依赖运行期动态加载和动态链接这个特点实现的。用户可以通过 Java 预定义的和自定义的类加载器来使用运行时从网络或者其他地方加载的一个二进制流作为程序代码的一部分。\n类加载的时机类从被加载到虚拟机内存中开始，到卸载出内存为止，整个的生命周期包括：\n\n加载（Loading）\n验证（Verification）\n准备（Preparation）\n解析（Resolution）\n初始化（Initialization）\n使用（Using）\n卸载（Unloading）\n\n\n\n\n其中验证、准备、解析3个部分统称为连接（Linking）。对于什么时候需要开始类加载过程的第一个阶段加载呢？这个 Java 虚拟机规范中没有强制约束，由虚拟机自己把握。但是在初始化阶段，虚拟机规范则强制规定了以下5种情况下必须立即对类进行“初始化”（加载、验证、准备自然需要在此之前进行）。\n\n遇到 new、getstatic、putstatic 或者 invokestatic 这4条字节码指令时，如果类没有进行初始化，则需要先触发其初始化。常见的场景如：使用 new 关键字实例化对象、读取或者设置一个类的静态字段（被 final 修饰、已在编译期把结果放入常量池的静态字段除外）、调用一个类的静态方法。\n使用 java.lang.reflect 包方法对类进行反射调用的时候，如果还未初始化则进行初始化。\n当初始化一个类的时候，如果发现其父类还没有进行过初始化则先触发父类的初始化。\n当虚拟机启动时，用户需要指定执行的主类（包含 main 方法的那个类），虚拟机会初始化这个主类。\n当使用动态语言支持时，如果一个 java.lang.invoke.MethodHandle 实例最后的解析结果 REF_getStatic、REF_putStatic、REF_invokeStatic 的方法句柄，并且这个句柄对应的类没有进行过初始化则进行初始化。\n\n这5中场景的行为称为对一个类的主动引用，除此以外，所有引用类的方式都不会触发初始化，称为被动引用。被动引用的场景如下：\n\n通过子类引用父类的静态字段，不会导致子类初始化。对于静态字段，只有直接定义这个字段的类才会被初始化，因此通过子类来引用父类的静态字段只会触发父类的初始化。\n通过数组定义来引用类，不会触发此类的初始化。这里触发了一个由虚拟机自动生成的直接继承于 java.lang.Object 的子类，创建动作由字节码指令 newarray 触发。这个类代表了我们使用的类的类型的一维数组，数组中的应有的属性都在这个类里面。Java 语言对数组的访问比 C/C++ 安全是因为这个类封装了数组元素的访问方法，而不是直接翻译为数组指针的移动。\n常量在编译阶段会存入调用类的常量池中，本质上面并没有直接引用到定义常量的类，不会触发定义常量类的初始化。\n\n接口的加载过程和类的加载过程稍微有点不同，接口也有初始化过程，编译器也会为接口生成”()“ 类构造器，用于初始化接口中定义的成员变量。接口与类的真正区别是：当一个类在初始化时，要求其父类全部都已经初始化过了，但是一个接口在初始化时，并不要求其父接口全部都已经完成初始化，只有在真正使用到了父接口的时候（如引用接口中定义的常量）才会初始化。\n类加载的过程接下来将讲解一下 Java 虚拟机中类加载的全部过程，加载、验证、准备、解析和初始化。\n加载加载阶段需要虚拟机完成以下3件事情：\n\n通过一个类的全限定名来获取定义此类的二进制字节流。\n将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构。\n在内存中生成一个代表这个类的 java.lang.Class 对象，作为方法区这个类的各种数据的访问入口。\n\n相对于类加载的其他阶段，一个非数组类的加载阶段是开发人员可控性最强的，因为加载阶段既可以使用系统提供的引导类加载器来完成，也可以由用户自定义的类加载器来完成，开发者可以通过定义自己的类加载器（即重写类加载器的 loadClass() 方法）来控制字节流的获取方式。而对于数组类的加载阶段，因为数组类本身不通过类加载器创建，是由 Java 虚拟机直接创建的，但是数组类与类加载器仍然有密切的关系，因为数组类的元素类型（指的是数组去掉所有维度的类型）最终是要靠类加载器去创建，一个数组类的创建过程遵循以下规则：\n\n如果数组的组件类型（Component Type，指的是数组去掉一个维度的类型）是引用类，那就递归采用本节中定义的加载过程去加载这个组件类型，这个数组将在加载该组件类型的类加载器的类名空间上被标识（一个类必须与类加载器一起确定唯一性）。\n如果数组的组件类型不是引用类型（如 int[] 数组），Java 虚拟机将会把这个数组标记为与引导类加载器关联。\n数组类的可见性与它的组件类型的可见性一致，如果组件类型不是引用类型，那么数组类的可见性将默认为 public。\n\n加载完成以后，虚拟机外部的二进制字节流就按照虚拟机所需的格式存储在方法区里了，然后在内存中实例化一个 java.lang.Class 类的对象。对于 HotSpot 虚拟机而言，Class 对象比较特殊，虽然是对象， 但是存放在方法区里面，这个对象将作为程序访问方法区中的这些类型数据的外部接口。加载阶段尚未完成，连接阶段可能已经开始了，这些夹杂在加载阶段的动作，仍然属于连接阶段的内容。\n验证验证是连接阶段的第一步，这一阶段的目的是为了确保 Class 文件的字节流中包含的信息复合当前虚拟机的要求，并且不会危害虚拟机自身的安全。使用纯粹的 Java 代码是无法危害到虚拟机本身的，但是 Class 文件本身就不一定了，你可以自己手动编写 Class 文件，如果虚拟机不检查输入的字节流而对其完全信任的话，可能会因为载入有害的字节流导致系统崩溃，所以需要验证。从整体上看，验证阶段大致包括以下4个检验动作：\n\n文件格式验证这些只是一部分验证内容，这阶段主要保证字节流能够正确解析并存储于方法区内，通过以后，字节流才会进入内存的方法区进行存储，所以后面3个验证阶段全部是基于方法区的存储结构进行的，不会再直接操作字节流了。\n\n是否以魔术 0xCAFEBABE 开头\n主、次版本号是否在当前虚拟机的处理范围内\n常量池的常量中是否有不被支持的常量类型（检查常量 tag 标志）\n指向常量的各种索引值中是否有指向不存在的常量\nClass 文件中各个部分及文件本身是否有被删除的或者附加的其他信息\nCONSTANT_Utf8_info 型的常量中是否有不符合 UTF8 编码的数据\n……..\n\n\n元数据验证这个阶段主要对元数据信息进行语义校验，保证不存在不符合 Java 语言规范的信息。\n\n这个类是否有父类（Object 类除外）\n这个类的父类是否继承了不被允许的类（final 类）\n若不是抽象类是否实现了父类的全部需要实现的方法\n类中的字段、方法是否与父类产生矛盾\n\n\n字节码验证这个阶段是验证过程中最复杂的阶段，主要目的是通过数据流和控制流分析，确定程序语义是合法的、复合逻辑的。\n\n保证任意时刻操作数栈的数据类型和指令代码序列能够配合工作，不会出现在操作数栈中放置了 int 型数据使用时却按照 long 类型来加载本地变量表中\n保证跳转指令不会跳转到方法提以外的字节码指令上\n保证方法体中的类型转化是有效的\n\n\n符号引用验证这个校验发生在虚拟机将符号引用转化为直接引用的时候，这个转化动作将在连接的第三阶段 —— 解析阶段发生。符号引用验证可以看作是对类自身之外（常量池中的各种符号引用）的信息进行匹配性校验。符号引用验证的目的是确保解析动作能够正常进行，如果无法通过验证的话，将会抛出 java.lang.IncompatibleClassChangeError 异常的子类，如 java.lang.IllegalAccessError、java.lang.NoSuchFieldError、java.lang.NoSuchMethodError 等。\n\n符号引用中通过字符串描述的全限定名是否能够找到对应的类\n在指定的类中是否存在符合方法的字段描述符以及简单名称所描述的方法和字段\n符号引用中的类、字段、方法的访问性是否正确\n\n\n\n准备准备阶段是正式为类变量分配内存并设置类变量初始值的阶段，这些变量使用的内存都将在方法区中进行分配。需要注意的是，这时候进行内存分配的仅包括类变量，而不包括实例变量，实例变量将会在对象实例化时随对象一起分配在 Java 堆中，另外，这里所说的初始值“通常情况”下是数据类型的零值，如下所示定义：\n1public static int value = 123;\n\n无论你定义的时候是否给这个变量赋值，变量在准备阶段过后的初始值是0，因为这时候尚为开始执行任何 Java 方法，而给变量赋值的 putstatic 指令是在程序被编译以后，存放与类构造器 () 方法之中，所以赋值操作将在初始化阶段才会去执行。另外，在“特殊情况”下，如类字段的字段属性表中存在 ConstantValue 属性，那么变量 value 就会被初始化为 ConstantValue 所指定的值，如下定义：\n1public static final int value = 123;\n\n添加了 final 属性以后，javac 编译器在编译的时候会生成 ConstantValue 属性，所以在准备阶段就会赋值123。\n解析解析阶段是虚拟机将常量池内的符号引用替换为直接引用的过程，符号引用在 Class 文件中以 CONSTANT_Class_info、CONSTANT_Field_info等类型的常量出现，与直接引用的关联如下：\n\n符号引用：以一组符号来描述引用的目标，可以是任何形式的字面量，只要能无歧义的定位到目标即可。符号引用与虚拟机的内存布局无关，引用的目标不一定已经加载到内存中。符号引用的字面量形式已经明确定义在 Java 虚拟机规范的 Class 文件中了。\n直接引用：直接引用可以是直接指向目标的指针、相对偏移量或是一个能够间接定位到目标的句柄。直接引用和虚拟机实现的内存布局是相关的，统一符号引用在不同虚拟机实例上面翻译出来的直接引用一般不同，如果有了直接引用，那么引用的目标一定在内存中存在。\n\n虚拟机规范并没有规定解析阶段发生的时间，只要求在执行了 anewarray、checkcast、getfield、getstatic、instanceof、invokedynamic、invokeinterface、invokespecial、invokestatic、invokevirtual、ldc、ldc_w、multianewarray、new、putfield 和 putstatic 这16个用于操作符号引用的字节码指令之前，先对它们所使用的符号引用进行解析。对于同一个符号引用进行对此解析请求很常见，除了 invokedynamic 指令除外，虚拟机可以对第一次解析的结果进行缓存（在运行时常量池中记录了直接引用，并把常量标识为已解析状态）从而避免解析动作重复进行。无论是否执行了多次解析操作，虚拟机保证在同一个实体中，如果一个符号引用已经解析过了，那么以后解析请求就应当一直成功。而对于动态语言指令则不适用。解析动作主要针对类或接口、字段、类方法、接口方法、方法类型、方法句柄和调用点限定符7类符号引用进行。\n\n类或接口解析假设当前代码所处的类为 D，如果要把一个从未解析过的符号引用 N 解析为一个类或接口 C 的直接引用，那么虚拟机将完成以下3个步骤：\n如果 C 不是一个数组类型，那么虚拟机将会把代表 N 的全限定名传递给 D 的类加载器去加载这个 C。在加载过程中，由于元数据验证、字节码验证的需要，又可能触发其他相关类的加载动作，例如加载和这个类的父类或实现的接口。一旦这个加载过程出现了任何异常则解析失败。\n如果 C 是一个数组类型，并且数组的元素是对象，也就是 N 的描述符会是类似“[Ljava/lang/Integer”的形式，那将会按照第1点的规则加载数组元素类型，如果 N 的描述符如前面所假设的形式，接着就由虚拟机生成一个代表此数组维度和元素的数组对象。\n如果上面的步骤没有出现任何异常，那么 C 在虚拟机中实际上已经成为一个有效的类或接口了，但在解析完成之前还要进行符号引用验证，确认 D 是否具有对 C 的访问权限，如果不具备，则抛出 java.lang.IllegalAccessError 异常。\n\n\n字段解析要解析一个未被解析过的字段符号引用，首先会对字段表内 class_index 项中索引的 CONSTANT_Class_info 符号引用进行解析，也就是字段所属的类或接口的符号引用。如果在解析这个类或接口符号引用的过程中出现了任何异常，都会导致字段符号引用解析的失败，如果解析成功完成，那将这个字段所属的类或接口用 C 表示，虚拟机按照如下的步骤对 C 进行后续字段的搜索：\n如果 C 本身就包含了简单名称和字段描述符都与目标相匹配的字段，则返回这个字段的直接引用，查找结束。\n否则，如果在 C 中实现了接口，将会按照继承关系从下往上递归搜索各个接口和它的父接口，如果接口中包含了简单名称和字段描述都与目标相匹配的字段，则返回这个字段的直接引用，查找结束。\n否则，如果 C 不是 java.lang.Object 的话，将会按照继承关系从下往上递归搜索，同2相似。\n否则，查找失败，抛出 java.lang.NoSuchFieldError 异常。\n如果查找成功，返回了引用，将会对之进行权限验证，如果发现不具备访问权限，则抛出 java.lang.IllegalAccessError 异常。\n\n\n类方法解析类方法解析的第一个步骤和字段解析一样，也需要解析出类方法表中 class_index 项中索引的方法所属的类或接口的符号引用，如果解析成功，我们依然用 C 表示这个类，接下来虚拟机会按照如下步骤进行后续的类方法搜索：\n类方法和接口方法符号引用的常量类型定义是分开的，如果在类方法表中发现 class_index 中索引 C 是个接口，那么直接抛出 java.lang.IncompatibleClassChangeError 异常。\n如果通过了第1步，在类 C 中查找是否由简单名称和描述符都与目标相匹配的方法，如果有则返回这个方法的直接引用，查找结束。\n否则，在类 C 的父类中递归查找是否有相匹配，如2。\n否则，在类 C 实现的接口列表以及它们的父接口中递归查找相匹配，如果存在匹配的方法，说明 C 是一个抽象类，这是查找结束，抛出 java.lang.AbstractMethodError 异常。\n否则，宣告方法查找失败，抛出 java.lang.NoSuchMethodError。\n如果查找成功，返回了引用，将会对之进行权限验证，如果发现不具备访问权限，则抛出 java.lang.IllegalAccessError 异常。\n\n\n接口方法解析接口方法解析也需要先解析出接口方法表的 class_index 项中索引的方法所属的类或接口的符号引用，如果解析成功，用 C 表示。\n如果在类方法表中发现 class_index 中索引 C 是个类，那么直接抛出 java.lang.IncompatibleClassChangeError 异常。\n否则，在接口 C 中查找匹配。\n否则，在接口 C 的父类中递归查找。\n否则，宣告查找失败，抛出 java.lang.NoSuchMethodError。\n由于接口中的方法默认都是 public 的，所以都可以访问。\n\n\n\n初始化类初始化阶段是类加载过程的最后一步，到了初始化阶段才开始真正执行类中定义的 Java 程序代码。在准备阶段，变量已经赋过一次系统要求的初始值，而在初始化阶段，则根据程序员通过程序制定的计划去初始化类变量和其他资源，初始化阶段是执行类构造器 () 方法的过程。\n\n() 方法是由编译器自动收集类中的所有类变量的赋值动作和静态语句块中的语句合并产生的，编译器收集的顺序是由语句在源文件中出现的顺序决定的，静态语句块只能访问到定义在静态语句块之前的变量，定义在之后的变量，在前面的静态语句块可以赋值，但是不能访问。\n() 方法与类的构造函数（或者说实例构造器()）不同，它不需要显示调用父类构造器，虚拟机会保证在子类的 () 方法执行之前，父类的() 方法已经执行完毕。\n由于父类的() 方法先执行，也就意味这父类中定义的静态语句块要优先于子类的变量赋值操作。\n() 方法对于类或接口来说并不是必须的，如果一个类中没有静态语句块，也没有对变量的赋值操作，那么编译器可以不为这个类生成 ()方法。\n接口中不能使用静态语句块，但仍然有变量初始化的赋值操作，因此接口与类一样都会生成 () 方法，但接口与类不同的是，执行接口的 () 方法不需要先执行父接口的 () 方法，只有当父接口中定义的变量使用时，父接口才会初始化，另外，接口的实现类在初始化时也一样不会执行接口的 () 方法。\n虚拟机会保证一个类的 () 方法在多线程环境中被正确的加锁、同步，如果多个线程同时去初始化一个类，那么只有一个线程去执行这个类的 () 方法。\n\n类加载器虚拟机设计团队把“通过一个类的全限定名来获取描述此类的二进制字节流”这个动作放到了 Java 虚拟机的外部去实现，以便应用程序自己决定如何去获取所需要的类，这个代码模块称为”类加载器“。类加载器算是 Java 流行的重要原因之一，最初是为了 Java Applet 的需求开发的，但是现在在类层次划分、OSGi、热部署和代码加密等领域大放异彩，。\n类与类加载器对于任何一个类，都需要由加载它的类加载器和这个类本身一同确立其在 Java 虚拟机中的唯一性，每一个类加载器都有一个独立的类命名空间。这样如果要比较两个类是否相等，只有在这两个类同属于一个类加载器的情况下才有意义。虽然两个类都来自一个 Class 文件，但如果加载这两个类的类加载器不是一个的话，那这两个类就是独立的类。\n双亲委派模型从 Java 虚拟机角度来讲，只存在两种不同的类加载器：启动类加载器（Bootstrap ClassLoader）：使用 C++ 实现，是虚拟机自身的一部分。其他所有类加载器：这些类加载器都由 Java 语言实现，独立于虚拟机外部，并且全都继承自抽象类 java.lang.ClassLoader。这里可以将类加载器细分一下，绝大部分 Java 程序都会使用到以下3种系统提供的类加载器：\n\n启动类加载器（Bootstrap ClassLoader）：这个类负责将存放在\\lib 目录中的，或者被-Xbootclasspath 参数所指定的路径中的，并且能够被虚拟机识别的（仅按照文件名识别，名字不符合的类库即使放在 lib 目录中也不会被加载）类库加载到虚拟机内存中。启动类加载器无法被 Java 程序直接引用，用户自定义的类加载器时，如果需要把加载请求委派给引导类加载器，那么直接使用 null 代替即可。\n扩展类加载器（Extension ClassLoader）：这个加载器负责加载\\lib\\ext 目录中的，或者被 java.ext.dirs 系统变量所指定的路径中的所有类，可发着可以直接使用扩展类加载库。\n应用程序类加载库（Application ClassLoader）：由于这个类加载器是 ClassLoader 中的 getSystemClassLoader() 方法中的返回值，所以一般也称为系统类加载器，它负责加载用户类路径（ClassPath）上所指定的类库，开发者可以直接使用这个类加载器，如果应用程序中没有自定义过自己的类加载器，一般这是程序中默认的类加载器。\n\n\n上图展示了类加载器之间的层次关系，称为类加载器的双亲委派模型（Parents Delegation Model）。双亲委派模型要求除了顶层的启动类加载器外，其余的类加载器都应当有自己的父类机载器。这里的加载器之间的父子关系一般不会以继承的关系来实现，而是以组合的关系来复用父加载器的代码。双亲委派模型的工作过程：如果一个类加载器收到了类加载的请求，它首先不会自己去尝试加载这个类，而是把请求委派给父类加载器去完成，每一个层次的加载器都是如此，因此所有的加载请求最终都送到了顶层的启动类加载器中，只有当父加载器反馈自己无法完成这个加载请求（它的搜索范围中没有找到所需的类）时，子加载器才会尝试自己去加载。双亲委派模型的好处就是 Java 类随着它的类加载器具备了优先级的层次关系，例如 Object 类，它存放在 tr.jar 之中，无论哪一个类加载器要加载这个类，最终都是给最顶层的加载器加载，保证了各个类加载环境中都是同一个类。相反，每个类加载器都加载自己的类的话就无法保证 Object 类的唯一性了。\n总结深入理解类加载机制原理能够让我们在以后自己控制类加载的生命周期时能够更加得心应手，也有利与研究当今非常流行的插件化组件化开发。\n","dateCreated":"2017-03-12T01:08:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2017-03-12T01:08:00+08:00","description":"概述虚拟机把描述类的数据从 Class 文件加载到内存，并对数据进行校验、转换解析和初始化，最终形成可以被虚拟机直接使用的 Java 类型，这就是虚拟机的类加载机制。与那些编译时需要进行链接的语言不同，Java 里面类型的加载、链接和初始化过程都是在程序运行期间完成的，Java 的动态扩展语言特性就是依赖运行期动态加载和动态链接这个特点实现的。用户可以通过 Java 预定义的和自定义的类加载器来使用运行时从网络或者其他地方加载的一个二进制流作为程序代码的一部分。\n类加载的时机类从被加载到虚拟机内存中开始，到卸载出内存为止，整个的生命周期包括：\n\n加载（Loading）\n验证（Verification）\n准备（Preparation）\n解析（Resolution）\n初始化（Initialization）\n使用（Using）\n卸载（Unloading）\n\n","headline":"深入理解Java虚拟机 读书笔记（五）虚拟机类加载机制","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/","keywords":"java, java 虚拟机"}</script>
+    <meta name="description" content="《深入理解Java虚拟机》读书笔记-虚拟机类加载机制">
+<meta name="keywords" content="java,java 虚拟机">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="深入理解Java虚拟机 读书笔记（五）虚拟机类加载机制">
+<meta property="og:url" content="http://zhangliukun.cn/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/index.html">
+<meta property="og:site_name" content="六锟小站">
+<meta property="og:description" content="《深入理解Java虚拟机》读书笔记-虚拟机类加载机制">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:image" content="http://zhangliukun.cn/image/classloader_life.png">
+<meta property="og:image" content="http://zhangliukun.cn/image/classloader_parent.png">
+<meta property="og:updated_time" content="2019-08-20T12:14:42.855Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="深入理解Java虚拟机 读书笔记（五）虚拟机类加载机制">
+<meta name="twitter:description" content="《深入理解Java虚拟机》读书笔记-虚拟机类加载机制">
+<meta name="twitter:image" content="http://zhangliukun.cn/image/classloader_life.png">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="http://zhangliukun.cn/assets/images/avatar.jpg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-4iwpnc93lrhj5xhp85jwjyjr2detotwl3e6te5tkbp5mthm9fmtbqzvsi9tc.min.css">
+    <!--STYLES END-->
+    
+
+    
+
+    
+        
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a
+            class="header-title-link"
+            href="/ "
+            aria-label=""
+        >
+            六锟小站
+        </a>
+    </div>
+    
+        
+            <a
+                class="header-right-picture "
+                href="#about"
+                aria-label="打开链接: /#about"
+            >
+        
+        
+            <img class="header-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a
+                    href="/#about"
+                    aria-label="阅读有关作者的更多信息"
+                >
+                    <img class="sidebar-profile-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+                </a>
+                <h4 class="sidebar-profile-name">zhangliukun</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>天蝎座？</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="首页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">首页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-tags"
+                            
+                            title="标签"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">标签</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-archives"
+                            
+                            title="归档"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">归档</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="#about"
+                            
+                            title="关于"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">关于</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/zhangliukun" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.facebook.com/zhang.zale" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fab fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/assets/love/index.html"
+                            title="Love"
+                        >
+                    
+                        <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Love</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/mailto"
+                            title="邮箱"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">邮箱</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            深入理解Java虚拟机 读书笔记（五）虚拟机类加载机制
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2017-03-12T01:08:00+08:00">
+	
+		    3月 12, 2017
+    	
+    </time>
+    
+        <span>发布在 </span>
+        
+    <a class="category-link" href="/categories/java/">java</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>虚拟机把描述类的数据从 Class 文件加载到内存，并对数据进行<strong>校验</strong>、<strong>转换解析</strong>和<strong>初始化</strong>，最终形成可以被虚拟机直接使用的 Java 类型，这就是虚拟机的<strong>类加载机制</strong>。<br>与那些编译时需要进行链接的语言不同，Java 里面类型的加载、链接和初始化过程都是在程序运行期间完成的，Java 的动态扩展语言特性就是依赖运行期动态加载和动态链接这个特点实现的。用户可以通过 Java 预定义的和自定义的类加载器来使用运行时从网络或者其他地方加载的一个二进制流作为程序代码的一部分。</p>
+<h2 id="类加载的时机"><a href="#类加载的时机" class="headerlink" title="类加载的时机"></a>类加载的时机</h2><p>类从被加载到虚拟机内存中开始，到卸载出内存为止，整个的生命周期包括：</p>
+<ul>
+<li><strong>加载（Loading）</strong></li>
+<li><strong>验证（Verification）</strong></li>
+<li><strong>准备（Preparation）</strong></li>
+<li><strong>解析（Resolution）</strong></li>
+<li><strong>初始化（Initialization）</strong></li>
+<li><strong>使用（Using）</strong></li>
+<li><strong>卸载（Unloading）</strong></li>
+</ul>
+<p><img src="/image/classloader_life.png" alt="类加载机制"></p>
+<a id="more"></a>
+
+<p>其中验证、准备、解析3个部分统称为连接（Linking）。对于什么时候需要开始类加载过程的第一个阶段加载呢？这个 Java 虚拟机规范中没有强制约束，由虚拟机自己把握。但是在初始化阶段，虚拟机规范则强制规定了以下5种情况下必须立即对类进行“初始化”（加载、验证、准备自然需要在此之前进行）。</p>
+<ol>
+<li>遇到 new、getstatic、putstatic 或者 invokestatic 这4条字节码指令时，如果类没有进行初始化，则需要先触发其初始化。常见的场景如：<strong>使用 new 关键字实例化对象、读取或者设置一个类的静态字段（被 final 修饰、已在编译期把结果放入常量池的静态字段除外）、调用一个类的静态方法</strong>。</li>
+<li>使用 java.lang.reflect 包方法对类进行<strong>反射调用</strong>的时候，如果还未初始化则进行初始化。</li>
+<li>当初始化一个类的时候，如果发现其<strong>父类还没有进行过初始化则先触发父类的初始化</strong>。</li>
+<li>当虚拟机启动时，用户需要指定执行的<strong>主类（包含 main 方法的那个类）</strong>，虚拟机会初始化这个主类。</li>
+<li>当使用<strong>动态语言支持</strong>时，如果一个 java.lang.invoke.MethodHandle 实例最后的解析结果 REF_getStatic、REF_putStatic、REF_invokeStatic 的方法句柄，并且这个句柄对应的类没有进行过初始化则进行初始化。</li>
+</ol>
+<p>这5中场景的行为称为对一个类的<strong>主动引用</strong>，除此以外，所有引用类的方式都不会触发初始化，称为<strong>被动引用</strong>。被动引用的场景如下：</p>
+<ol>
+<li><strong>通过子类引用父类的静态字段，不会导致子类初始化</strong>。对于静态字段，只有直接定义这个字段的类才会被初始化，因此通过子类来引用父类的静态字段只会触发父类的初始化。</li>
+<li><strong>通过数组定义来引用类，不会触发此类的初始化</strong>。这里触发了一个由虚拟机自动生成的直接继承于 java.lang.Object 的子类，创建动作由字节码指令 newarray 触发。这个类代表了我们使用的类的类型的一维数组，数组中的应有的属性都在这个类里面。Java 语言对数组的访问比 C/C++ 安全是因为这个类封装了数组元素的访问方法，而不是直接翻译为数组指针的移动。</li>
+<li><strong>常量在编译阶段会存入调用类的常量池中，本质上面并没有直接引用到定义常量的类，不会触发定义常量类的初始化</strong>。</li>
+</ol>
+<p>接口的加载过程和类的加载过程稍微有点不同，接口也有初始化过程，编译器也会为接口生成”<clinit>()“ 类构造器，用于初始化接口中定义的成员变量。接口与类的真正区别是：<strong>当一个类在初始化时，要求其父类全部都已经初始化过了，但是一个接口在初始化时，并不要求其父接口全部都已经完成初始化，只有在真正使用到了父接口的时候（如引用接口中定义的常量）</strong>才会初始化。</clinit></p>
+<h2 id="类加载的过程"><a href="#类加载的过程" class="headerlink" title="类加载的过程"></a>类加载的过程</h2><p>接下来将讲解一下 Java 虚拟机中类加载的全部过程，<strong>加载、验证、准备、解析和初始化</strong>。</p>
+<h3 id="加载"><a href="#加载" class="headerlink" title="加载"></a>加载</h3><p>加载阶段需要虚拟机完成以下3件事情：</p>
+<ol>
+<li>通过一个类的全限定名来获取定义此类的二进制字节流。</li>
+<li>将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构。</li>
+<li>在内存中生成一个代表这个类的 java.lang.Class 对象，作为方法区这个类的各种数据的访问入口。</li>
+</ol>
+<p>相对于类加载的其他阶段，一个<strong>非数组类的加载阶段</strong>是开发人员可控性最强的，因为加载阶段既可以使用系统提供的引导类加载器来完成，也可以由用户自定义的类加载器来完成，开发者可以通过定义自己的类加载器（即重写类加载器的 loadClass() 方法）来控制字节流的获取方式。而对于<strong>数组类的加载阶段</strong>，因为数组类本身不通过类加载器创建，是由 Java 虚拟机直接创建的，但是数组类与类加载器仍然有密切的关系，因为数组类的元素类型（指的是数组去掉所有维度的类型）最终是要靠类加载器去创建，一个数组类的创建过程遵循以下规则：</p>
+<ul>
+<li>如果数组的组件类型（Component Type，指的是数组去掉一个维度的类型）是引用类，那就递归采用本节中定义的加载过程去加载这个组件类型，这个数组将在<strong>加载该组件类型的类加载器</strong>的类名空间上被标识（一个类必须与类加载器一起确定唯一性）。</li>
+<li>如果数组的组件类型不是引用类型（如 int[] 数组），Java 虚拟机将会把这个数组标记为与<strong>引导类加载器</strong>关联。</li>
+<li>数组类的可见性与它的组件类型的可见性一致，如果组件类型不是引用类型，那么数组类的可见性将默认为 public。</li>
+</ul>
+<p>加载完成以后，虚拟机外部的二进制字节流就按照虚拟机所需的格式存储在方法区里了，然后在内存中实例化一个 java.lang.Class 类的对象。对于 HotSpot 虚拟机而言，Class 对象比较特殊，虽然是对象， 但是存放在方法区里面，这个对象将作为程序访问方法区中的这些类型数据的外部接口。加载阶段尚未完成，连接阶段可能已经开始了，这些夹杂在加载阶段的动作，仍然属于连接阶段的内容。</p>
+<h3 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h3><p>验证是连接阶段的第一步，这一阶段的目的是为了确保 Class 文件的字节流中包含的信息复合当前虚拟机的要求，并且不会危害虚拟机自身的安全。使用纯粹的 Java 代码是无法危害到虚拟机本身的，但是 Class 文件本身就不一定了，你可以自己手动编写 Class 文件，如果虚拟机不检查输入的字节流而对其完全信任的话，可能会因为载入有害的字节流导致系统崩溃，所以需要验证。从整体上看，验证阶段大致包括以下4个检验动作：</p>
+<ol>
+<li><p>文件格式验证<br>这些只是一部分验证内容，这阶段主要保证字节流能够正确解析并存储于方法区内，通过以后，字节流才会进入内存的方法区进行存储，所以后面3个验证阶段全部是基于方法区的存储结构进行的，不会再直接操作字节流了。</p>
+<ul>
+<li>是否以魔术 0xCAFEBABE 开头</li>
+<li>主、次版本号是否在当前虚拟机的处理范围内</li>
+<li>常量池的常量中是否有不被支持的常量类型（检查常量 tag 标志）</li>
+<li>指向常量的各种索引值中是否有指向不存在的常量</li>
+<li>Class 文件中各个部分及文件本身是否有被删除的或者附加的其他信息</li>
+<li>CONSTANT_Utf8_info 型的常量中是否有不符合 UTF8 编码的数据</li>
+<li>……..</li>
+</ul>
+</li>
+<li><p>元数据验证<br>这个阶段主要对元数据信息进行语义校验，保证不存在不符合 Java 语言规范的信息。</p>
+<ul>
+<li>这个类是否有父类（Object 类除外）</li>
+<li>这个类的父类是否继承了不被允许的类（final 类）</li>
+<li>若不是抽象类是否实现了父类的全部需要实现的方法</li>
+<li>类中的字段、方法是否与父类产生矛盾</li>
+</ul>
+</li>
+<li><p>字节码验证<br>这个阶段是验证过程中最复杂的阶段，主要目的是通过数据流和控制流分析，确定程序语义是合法的、复合逻辑的。</p>
+<ul>
+<li>保证任意时刻操作数栈的数据类型和指令代码序列能够配合工作，不会出现在操作数栈中放置了 int 型数据使用时却按照 long 类型来加载本地变量表中</li>
+<li>保证跳转指令不会跳转到方法提以外的字节码指令上</li>
+<li>保证方法体中的类型转化是有效的</li>
+</ul>
+</li>
+<li><p>符号引用验证<br>这个校验发生在虚拟机将符号引用转化为直接引用的时候，这个转化动作将在连接的第三阶段 —— 解析阶段发生。符号引用验证可以看作是对类自身之外（常量池中的各种符号引用）的信息进行匹配性校验。符号引用验证的目的是确保解析动作能够正常进行，如果无法通过验证的话，将会抛出 java.lang.IncompatibleClassChangeError 异常的子类，如 java.lang.IllegalAccessError、java.lang.NoSuchFieldError、java.lang.NoSuchMethodError 等。</p>
+<ul>
+<li>符号引用中通过字符串描述的全限定名是否能够找到对应的类</li>
+<li>在指定的类中是否存在符合方法的字段描述符以及简单名称所描述的方法和字段</li>
+<li>符号引用中的类、字段、方法的访问性是否正确</li>
+</ul>
+</li>
+</ol>
+<h3 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h3><p>准备阶段是正式为类变量分配内存并设置类变量初始值的阶段，这些变量使用的内存都将在方法区中进行分配。需要注意的是，这时候进行内存分配的仅包括<strong>类变量</strong>，而不包括实例变量，实例变量将会在对象实例化时随对象一起分配在 Java 堆中，另外，这里所说的初始值“通常情况”下是数据类型的零值，如下所示定义：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> value = <span class="number">123</span>;</span><br></pre></td></tr></table></figure>
+
+<p>无论你定义的时候是否给这个变量赋值，变量在准备阶段过后的初始值是0，因为这时候尚为开始执行任何 Java 方法，而给变量赋值的 putstatic 指令是在程序被编译以后，存放与类构造器 <clinit>() 方法之中，所以赋值操作将在初始化阶段才会去执行。<br>另外，在“特殊情况”下，如类字段的字段属性表中存在 ConstantValue 属性，那么变量 value 就会被初始化为 ConstantValue 所指定的值，如下定义：</clinit></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> value = <span class="number">123</span>;</span><br></pre></td></tr></table></figure>
+
+<p>添加了 final 属性以后，javac 编译器在编译的时候会生成 ConstantValue 属性，所以在准备阶段就会赋值123。</p>
+<h3 id="解析"><a href="#解析" class="headerlink" title="解析"></a>解析</h3><p>解析阶段是虚拟机将常量池内的符号引用替换为直接引用的过程，符号引用在 Class 文件中以 CONSTANT_Class_info、CONSTANT_Field_info等类型的常量出现，与直接引用的关联如下：</p>
+<ul>
+<li><strong>符号引用</strong>：以一组符号来描述引用的目标，可以是任何形式的字面量，只要能无歧义的定位到目标即可。符号引用与虚拟机的内存布局无关，引用的目标不一定已经加载到内存中。符号引用的字面量形式已经明确定义在 Java 虚拟机规范的 Class 文件中了。</li>
+<li><strong>直接引用</strong>：直接引用可以是直接指向目标的指针、相对偏移量或是一个能够间接定位到目标的句柄。直接引用和虚拟机实现的内存布局是相关的，统一符号引用在不同虚拟机实例上面翻译出来的直接引用一般不同，如果有了直接引用，那么引用的目标一定在内存中存在。</li>
+</ul>
+<p>虚拟机规范并没有规定解析阶段发生的时间，只要求在执行了 anewarray、checkcast、getfield、getstatic、instanceof、invokedynamic、invokeinterface、invokespecial、invokestatic、invokevirtual、ldc、ldc_w、multianewarray、new、putfield 和 putstatic 这16个用于操作符号引用的字节码指令之前，先对它们所使用的符号引用进行解析。<br>对于同一个符号引用进行对此解析请求很常见，除了 invokedynamic 指令除外，虚拟机可以对第一次解析的结果进行缓存（在运行时常量池中记录了直接引用，并把常量标识为已解析状态）从而避免解析动作重复进行。无论是否执行了多次解析操作，虚拟机保证在同一个实体中，如果一个符号引用已经解析过了，那么以后解析请求就应当一直成功。而对于动态语言指令则不适用。解析动作主要针对类或接口、字段、类方法、接口方法、方法类型、方法句柄和调用点限定符7类符号引用进行。</p>
+<ol>
+<li>类或接口解析<br>假设当前代码所处的类为 D，如果要把一个从未解析过的符号引用 N 解析为一个类或接口 C 的直接引用，那么虚拟机将完成以下3个步骤：<ol>
+<li>如果 C 不是一个数组类型，那么虚拟机将会把代表 N 的全限定名传递给 D 的类加载器去加载这个 C。在加载过程中，由于元数据验证、字节码验证的需要，又可能触发其他相关类的加载动作，例如加载和这个类的父类或实现的接口。一旦这个加载过程出现了任何异常则解析失败。</li>
+<li>如果 C 是一个数组类型，并且数组的元素是对象，也就是 N 的描述符会是类似“[Ljava/lang/Integer”的形式，那将会按照第1点的规则加载数组元素类型，如果 N 的描述符如前面所假设的形式，接着就由虚拟机生成一个代表此数组维度和元素的数组对象。</li>
+<li>如果上面的步骤没有出现任何异常，那么 C 在虚拟机中实际上已经成为一个有效的类或接口了，但在解析完成之前还要进行符号引用验证，确认 D 是否具有对 C 的访问权限，如果不具备，则抛出 java.lang.IllegalAccessError 异常。</li>
+</ol>
+</li>
+<li>字段解析<br>要解析一个未被解析过的字段符号引用，首先会对字段表内 class_index 项中索引的 CONSTANT_Class_info 符号引用进行解析，也就是字段所属的类或接口的符号引用。如果在解析这个类或接口符号引用的过程中出现了任何异常，都会导致字段符号引用解析的失败，如果解析成功完成，那将这个字段所属的类或接口用 C 表示，虚拟机按照如下的步骤对 C 进行后续字段的搜索：<ol>
+<li>如果 C 本身就包含了简单名称和字段描述符都与目标相匹配的字段，则返回这个字段的直接引用，查找结束。</li>
+<li>否则，如果在 C 中实现了接口，将会按照继承关系从下往上递归搜索各个接口和它的父接口，如果接口中包含了简单名称和字段描述都与目标相匹配的字段，则返回这个字段的直接引用，查找结束。</li>
+<li>否则，如果 C 不是 java.lang.Object 的话，将会按照继承关系从下往上递归搜索，同2相似。</li>
+<li>否则，查找失败，抛出 java.lang.NoSuchFieldError 异常。</li>
+<li>如果查找成功，返回了引用，将会对之进行权限验证，如果发现不具备访问权限，则抛出 java.lang.IllegalAccessError 异常。</li>
+</ol>
+</li>
+<li>类方法解析<br>类方法解析的第一个步骤和字段解析一样，也需要解析出类方法表中 class_index 项中索引的方法所属的类或接口的符号引用，如果解析成功，我们依然用 C 表示这个类，接下来虚拟机会按照如下步骤进行后续的类方法搜索：<ol>
+<li>类方法和接口方法符号引用的常量类型定义是分开的，如果在类方法表中发现 class_index 中索引 C 是个接口，那么直接抛出 java.lang.IncompatibleClassChangeError 异常。</li>
+<li>如果通过了第1步，在类 C 中查找是否由简单名称和描述符都与目标相匹配的方法，如果有则返回这个方法的直接引用，查找结束。</li>
+<li>否则，在类 C 的父类中递归查找是否有相匹配，如2。</li>
+<li>否则，在类 C 实现的接口列表以及它们的父接口中递归查找相匹配，如果存在匹配的方法，说明 C 是一个抽象类，这是查找结束，抛出 java.lang.AbstractMethodError 异常。</li>
+<li>否则，宣告方法查找失败，抛出 java.lang.NoSuchMethodError。</li>
+<li>如果查找成功，返回了引用，将会对之进行权限验证，如果发现不具备访问权限，则抛出 java.lang.IllegalAccessError 异常。</li>
+</ol>
+</li>
+<li>接口方法解析<br>接口方法解析也需要先解析出接口方法表的 class_index 项中索引的方法所属的类或接口的符号引用，如果解析成功，用 C 表示。<ol>
+<li>如果在类方法表中发现 class_index 中索引 C 是个类，那么直接抛出 java.lang.IncompatibleClassChangeError 异常。</li>
+<li>否则，在接口 C 中查找匹配。</li>
+<li>否则，在接口 C 的父类中递归查找。</li>
+<li>否则，宣告查找失败，抛出 java.lang.NoSuchMethodError。</li>
+<li>由于接口中的方法默认都是 public 的，所以都可以访问。</li>
+</ol>
+</li>
+</ol>
+<h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><p>类初始化阶段是类加载过程的最后一步，到了初始化阶段才开始真正执行类中定义的 Java 程序代码。在准备阶段，变量已经赋过一次系统要求的初始值，而在初始化阶段，则根据程序员通过程序制定的计划去初始化类变量和其他资源，初始化阶段是执行类构造器 <clinit>() 方法的过程。</clinit></p>
+<ul>
+<li><clinit>() 方法是由编译器自动收集类中的所有<strong>类变量</strong>的赋值动作和<strong>静态语句块</strong>中的语句合并产生的，编译器收集的顺序是由语句在源文件中出现的顺序决定的，静态语句块只能访问到定义在静态语句块之前的变量，定义在之后的变量，在前面的静态语句块可以赋值，但是不能访问。</clinit></li>
+<li><clinit>() 方法与类的构造函数（或者说实例构造器<init>()）不同，它不需要显示调用父类构造器，虚拟机会保证在子类的 <clinit>() 方法执行之前，父类的<clinit>() 方法已经执行完毕。</clinit></clinit></init></clinit></li>
+<li>由于父类的<clinit>() 方法先执行，也就意味这父类中定义的静态语句块要优先于子类的变量赋值操作。</clinit></li>
+<li><clinit>() 方法对于类或接口来说并不是必须的，如果一个类中没有静态语句块，也没有对变量的赋值操作，那么编译器可以不为这个类生成 <clinit>()方法。</clinit></clinit></li>
+<li>接口中不能使用静态语句块，但仍然有变量初始化的赋值操作，因此接口与类一样都会生成 <clinit>() 方法，但接口与类不同的是，执行接口的 <clinit>() 方法不需要先执行父接口的 <clinit>() 方法，只有当父接口中定义的变量使用时，父接口才会初始化，另外，接口的实现类在初始化时也一样不会执行接口的 <clinit>() 方法。</clinit></clinit></clinit></clinit></li>
+<li>虚拟机会保证一个类的 <clinit>() 方法在多线程环境中被正确的加锁、同步，如果多个线程同时去初始化一个类，那么只有一个线程去执行这个类的 <clinit>() 方法。</clinit></clinit></li>
+</ul>
+<h3 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h3><p>虚拟机设计团队把“通过一个类的全限定名来获取描述此类的二进制字节流”这个动作放到了 Java 虚拟机的外部去实现，以便应用程序自己决定如何去获取所需要的类，这个代码模块称为”类加载器“。<br>类加载器算是 Java 流行的重要原因之一，最初是为了 Java Applet 的需求开发的，但是现在在类层次划分、OSGi、热部署和代码加密等领域大放异彩，。</p>
+<h4 id="类与类加载器"><a href="#类与类加载器" class="headerlink" title="类与类加载器"></a>类与类加载器</h4><p>对于任何一个类，都需要由加载它的类加载器和这个类本身一同确立其在 Java 虚拟机中的唯一性，每一个类加载器都有一个独立的类命名空间。这样如果要比较两个类是否相等，只有在这两个类同属于一个类加载器的情况下才有意义。虽然两个类都来自一个 Class 文件，但如果加载这两个类的类加载器不是一个的话，那这两个类就是独立的类。</p>
+<h4 id="双亲委派模型"><a href="#双亲委派模型" class="headerlink" title="双亲委派模型"></a>双亲委派模型</h4><p>从 Java 虚拟机角度来讲，只存在两种不同的类加载器：<strong>启动类加载器（Bootstrap ClassLoader）</strong>：使用 C++ 实现，是虚拟机自身的一部分。<strong>其他所有类加载器</strong>：这些类加载器都由 Java 语言实现，独立于虚拟机外部，并且全都继承自抽象类 java.lang.ClassLoader。<br>这里可以将类加载器细分一下，绝大部分 Java 程序都会使用到以下3种系统提供的类加载器：</p>
+<ol>
+<li><strong>启动类加载器（Bootstrap ClassLoader）</strong>：这个类负责将存放在<java_home>\lib 目录中的，或者被-Xbootclasspath 参数所指定的路径中的，并且能够被虚拟机识别的（仅按照文件名识别，名字不符合的类库即使放在 lib 目录中也不会被加载）类库加载到虚拟机内存中。启动类加载器无法被 Java 程序直接引用，用户自定义的类加载器时，如果需要把加载请求委派给引导类加载器，那么直接使用 null 代替即可。</java_home></li>
+<li><strong>扩展类加载器（Extension ClassLoader）</strong>：这个加载器负责加载<java_home>\lib\ext 目录中的，或者被 java.ext.dirs 系统变量所指定的路径中的所有类，可发着可以直接使用扩展类加载库。</java_home></li>
+<li><strong>应用程序类加载库（Application ClassLoader）</strong>：由于这个类加载器是 ClassLoader 中的 getSystemClassLoader() 方法中的返回值，所以一般也称为系统类加载器，它负责加载用户类路径（ClassPath）上所指定的类库，开发者可以直接使用这个类加载器，如果应用程序中没有自定义过自己的类加载器，一般这是程序中默认的类加载器。</li>
+</ol>
+<p><img src="/image/classloader_parent.png" alt="双亲委派模型"></p>
+<p>上图展示了类加载器之间的层次关系，称为类加载器的<strong>双亲委派模型（Parents Delegation Model）</strong>。<br><strong>双亲委派模型要求除了顶层的启动类加载器外，其余的类加载器都应当有自己的父类机载器。这里的加载器之间的父子关系一般不会以继承的关系来实现，而是以组合的关系来复用父加载器的代码。</strong><br>双亲委派模型的工作过程：如果一个类加载器收到了类加载的请求，它首先不会自己去尝试加载这个类，而是把请求委派给父类加载器去完成，每一个层次的加载器都是如此，因此所有的加载请求最终都送到了顶层的启动类加载器中，只有当父加载器反馈自己无法完成这个加载请求（它的搜索范围中没有找到所需的类）时，子加载器才会尝试自己去加载。<br>双亲委派模型的好处就是 Java 类随着它的类加载器具备了优先级的层次关系，例如 Object 类，它存放在 tr.jar 之中，无论哪一个类加载器要加载这个类，最终都是给最顶层的加载器加载，保证了各个类加载环境中都是同一个类。相反，每个类加载器都加载自己的类的话就无法保证 Object 类的唯一性了。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>深入理解类加载机制原理能够让我们在以后自己控制类加载的生命周期时能够更加得心应手，也有利与研究当今非常流行的插件化组件化开发。</p>
+
+            
+
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">标签</span><br/>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/java/">java</a> <a class="tag tag--primary tag--small t-link" href="/tags/java-虚拟机/">java 虚拟机</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2019/08/08/firstpost-md/"
+                    data-tooltip="8月8日"
+                    aria-label="上一篇: 8月8日"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2017/03/10/《深入理解Java虚拟机》读书笔记（四）类文件结构/"
+                    data-tooltip="深入理解Java虚拟机 读书笔记（四）类文件结构"
+                    aria-label="下一篇: 深入理解Java虚拟机 读书笔记（四）类文件结构"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 zhangliukun. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2019/08/08/firstpost-md/"
+                    data-tooltip="8月8日"
+                    aria-label="上一篇: 8月8日"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2017/03/10/《深入理解Java虚拟机》读书笔记（四）类文件结构/"
+                    data-tooltip="深入理解Java虚拟机 读书笔记（四）类文件结构"
+                    aria-label="下一篇: 深入理解Java虚拟机 读书笔记（四）类文件结构"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/"
+                        aria-label="分享到 Facebook"
+                    >
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>分享到 Facebook</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/"
+                        aria-label="分享到 Weibo"
+                    >
+                        <i class="fab fa-weibo" aria-hidden="true"></i><span>分享到 Weibo</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/"
+                        aria-label="分享到 Qzone"
+                    >
+                        <i class="fa fa-star" aria-hidden="true"></i><span>分享到 Qzone</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+            <h4 id="about-card-name">zhangliukun</h4>
+        
+            <div id="about-card-bio"><p>天蝎座？</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>学生</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br/>
+                Hangzhou
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-opoomiy5imbn3xwjxebdjebgsd1hwgcbosrvoydvgbs5mjvuui1wxks1q9cr.min.js"></script>
+<!--SCRIPTS END-->
+
+
+    
+
+
+
+
+    </body>
+</html>

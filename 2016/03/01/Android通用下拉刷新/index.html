@@ -1,0 +1,656 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="六锟小站">
+    <title>Android通用下拉刷新 - 六锟小站</title>
+    <meta name="author" content="zhangliukun">
+    
+    
+        <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
+    
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"简介最近几天自己实现了一个通用的下拉刷新控件，在项目介绍是写的英文，应该也不难看懂，就懒得再用中文写一遍了就直接复制过来了。如有问题多谢指出。\ncommon-pull-refreshA widget that can achieve the function of pulling to refresh. It’s like a container which can help developer to manager the sub view.\nThis widget supports almost all of the android view such as listview,webview,scrollview or more.What’s more,It’s extremely flexible and extensible.You can user your own view for the pull-refresh head.I support somecallback to you in the headview for your own animation.you just need to follow the steps below.\n\n\nproject source codeYou can fork this project on github Project Code\nGradle dependencyI am studying how to publish this widget to the Jcenter and the mavenCenter now,so you will see the dependency soon or later.\nScreenshots\npull refresh common view\n\n\n\npull refresh scrollview\n\n\n\npull refresh listview\n\n\nUsageOnly these simple code you need to write that you get what you want.\ncode in your activity12345678910111213141516PullContainer mPullContainer = (PullContainer) findViewById(R.id.base_container);SimpleHeader simpleHeader = new SimpleHeader(this);mPullContainer.setHeaderView(simpleHeader);mPullContainer.setRefreshCallBack(new RefreshCallBack() &#123;    @Override    public void onRefreshBegin() &#123;        mHandler.postDelayed(new Runnable() &#123;            @Override            public void run() &#123;                mPullContainer.refreshComplete();            &#125;        &#125;, 2000);    &#125;&#125;);\n\ncode in your contentView xml1234567891011121314&lt;zalezone.pullrefresh.pullrefreshview.PullContainer        android:id=\"@+id/base_container\"        android:layout_width=\"match_parent\"        android:layout_height=\"match_parent\"&gt;        &lt;zalezone.pullrefresh.pullrefreshview.MyContent            android:id=\"@+id/my_textview\"            android:layout_width=\"match_parent\"            android:layout_height=\"match_parent\"            android_custom:layoutMarginLeft=\"40dp\"            android_custom:layoutMarginRight=\"40dp\"/&gt;&lt;/zalezone.pullrefresh.pullrefreshview.PullContainer&gt;\n\nLook,how easy it is.\nCustomizingI guess you are wondering to know how to use your own head view with your favourite style.Of course,I alsosupport the most flexible and extandable way for you.\ndraw your own head viewFor convenience,I offer a simple header view for you in the sample code.You just need to draw your own head view like me.Here is the code of my SimpleHeader\n1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556/** * Created by zale on 2015/12/9. */public class SimpleHeader extends BaseHeader &#123;    private TextView stateTV;    private ImageView arrowIV;    private Animation rotateAn;    public SimpleHeader(Context context) &#123;        this(context, null);    &#125;    public SimpleHeader(Context context, AttributeSet attrs) &#123;        super(context, attrs);        init(context);    &#125;    private void init(Context context) &#123;        View headView = LayoutInflater.from(context).inflate(R.layout.item_simple_headview, this);        stateTV = (TextView) headView.findViewById(R.id.state);        arrowIV = (ImageView) headView.findViewById(R.id.arrow_image);        rotateAn = AnimationUtils.loadAnimation(context,R.anim.pull_refresh_arrow_anim);        LinearInterpolator linearInterpolator = new LinearInterpolator();        rotateAn.setInterpolator(linearInterpolator);    &#125;    @Override    public void onUIReset(Indicator indicator) &#123;        stateTV.setText(\"pull to refresh\");    &#125;    @Override    public void onUIRefreshPerpare(Indicator indicator) &#123;        stateTV.setText(\"release to refresh\");    &#125;    @Override    public void onUIRefreshBegin(Indicator indicator) &#123;        stateTV.setText(\"refreshing\");        if (rotateAn!=null)&#123;            arrowIV.startAnimation(rotateAn);        &#125;    &#125;    @Override    public void onUIRefreshComplete(Indicator indicator) &#123;        stateTV.setText(\"refresh complete\");        arrowIV.clearAnimation();    &#125;&#125;\n\nAll you need to do is to subclass the BaseHeader and override methods in the code.\nwarning:you should not override the onUIPositionChange method int your head view because this method is used to control the UI \nother custom stylesExcept write the head view by yourself,you can also drive the widget performs like what you want.You are able to use these methods tocontrol the behaviour.\nClass: zalezone.pullrefresh.pullrefreshview.PullContainer\nPublic Methods\n\nvoid setPullResistance(float resistance)  set the resistance of pulling the view.\n\nvoid setPullCloseDuration(int millisecond)  set the duration of close the content.\n\nvoid set headerCloseDuration(int millisecond)  set the duration of close the header. \n\n\nmore?to to continued..\nCommunicationIf you have some suggestions or want to join me to prefect this widget,welcome to contact me.email:1433317488@qq.com,zalecoder@gmail.com\n","dateCreated":"2016-03-01T12:09:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2016-03-01T12:09:00+08:00","description":"简介最近几天自己实现了一个通用的下拉刷新控件，在项目介绍是写的英文，应该也不难看懂，就懒得再用中文写一遍了就直接复制过来了。如有问题多谢指出。\ncommon-pull-refreshA widget that can achieve the function of pulling to refresh. It’s like a container which can help developer to manager the sub view.\nThis widget supports almost all of the android view such as listview,webview,scrollview or more.What’s more,It’s extremely flexible and extensible.You can user your own view for the pull-refresh head.I support somecallback to you in the headview for your own animation.you just need to follow the steps below.","headline":"Android通用下拉刷新","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2016/03/01/Android通用下拉刷新/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2016/03/01/Android通用下拉刷新/","keywords":"android, 下拉刷新, 自定义控件"}</script>
+    <meta name="description" content="android通用下拉刷新">
+<meta name="keywords" content="android,下拉刷新,自定义控件">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="Android通用下拉刷新">
+<meta property="og:url" content="http://zhangliukun.cn/2016/03/01/Android通用下拉刷新/index.html">
+<meta property="og:site_name" content="六锟小站">
+<meta property="og:description" content="android通用下拉刷新">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:image" content="http://img.blog.csdn.net/20160302195215481">
+<meta property="og:image" content="http://img.blog.csdn.net/20160302195028273">
+<meta property="og:image" content="http://img.blog.csdn.net/20160302195142277">
+<meta property="og:updated_time" content="2019-08-20T12:14:42.838Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android通用下拉刷新">
+<meta name="twitter:description" content="android通用下拉刷新">
+<meta name="twitter:image" content="http://img.blog.csdn.net/20160302195215481">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="http://zhangliukun.cn/assets/images/avatar.jpg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-4iwpnc93lrhj5xhp85jwjyjr2detotwl3e6te5tkbp5mthm9fmtbqzvsi9tc.min.css">
+    <!--STYLES END-->
+    
+
+    
+
+    
+        
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a
+            class="header-title-link"
+            href="/ "
+            aria-label=""
+        >
+            六锟小站
+        </a>
+    </div>
+    
+        
+            <a
+                class="header-right-picture "
+                href="#about"
+                aria-label="打开链接: /#about"
+            >
+        
+        
+            <img class="header-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a
+                    href="/#about"
+                    aria-label="阅读有关作者的更多信息"
+                >
+                    <img class="sidebar-profile-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+                </a>
+                <h4 class="sidebar-profile-name">zhangliukun</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>天蝎座？</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="首页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">首页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-tags"
+                            
+                            title="标签"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">标签</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-archives"
+                            
+                            title="归档"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">归档</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="#about"
+                            
+                            title="关于"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">关于</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/zhangliukun" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.facebook.com/zhang.zale" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fab fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/assets/love/index.html"
+                            title="Love"
+                        >
+                    
+                        <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Love</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/mailto"
+                            title="邮箱"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">邮箱</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            Android通用下拉刷新
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2016-03-01T12:09:00+08:00">
+	
+		    3月 01, 2016
+    	
+    </time>
+    
+        <span>发布在 </span>
+        
+    <a class="category-link" href="/categories/android/">android</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>最近几天自己实现了一个通用的下拉刷新控件，在项目介绍是写的英文，应该也不难看懂，就懒得再用中文写一遍了就直接复制过来了。如有问题多谢指出。</p>
+<h1 id="common-pull-refresh"><a href="#common-pull-refresh" class="headerlink" title="common-pull-refresh"></a>common-pull-refresh</h1><p>A widget that can achieve the function of pulling to refresh. It’s like a container which can help developer to manager the sub view.</p>
+<p>This widget supports almost all of the android view such as listview,webview,scrollview or more.What’s more,It’s extremely flexible and extensible.You can user your own view for the pull-refresh head.I support some<br>callback to you in the headview for your own animation.you just need to follow the steps below.</p>
+<a id="more"></a>
+
+<h2 id="project-source-code"><a href="#project-source-code" class="headerlink" title="project source code"></a>project source code</h2><p>You can fork this project on github <a href="https://github.com/zhangliukun/CommonPullRefresh" target="_blank" rel="noopener"><strong>Project Code</strong></a></p>
+<h2 id="Gradle-dependency"><a href="#Gradle-dependency" class="headerlink" title="Gradle dependency"></a>Gradle dependency</h2><p>I am studying how to publish this widget to the Jcenter and the mavenCenter now,so you will see the dependency soon or later.</p>
+<h2 id="Screenshots"><a href="#Screenshots" class="headerlink" title="Screenshots"></a>Screenshots</h2><ul>
+<li>pull refresh common view</li>
+</ul>
+<p><img src="http://img.blog.csdn.net/20160302195215481" alt="refresh3"></p>
+<ul>
+<li>pull refresh scrollview</li>
+</ul>
+<p><img src="http://img.blog.csdn.net/20160302195028273" alt="refresh1"></p>
+<ul>
+<li>pull refresh listview</li>
+</ul>
+<p><img src="http://img.blog.csdn.net/20160302195142277" alt="refresh2"></p>
+<h2 id="Usage"><a href="#Usage" class="headerlink" title="Usage"></a>Usage</h2><p>Only these simple code you need to write that you get what you want.</p>
+<h3 id="code-in-your-activity"><a href="#code-in-your-activity" class="headerlink" title="code in your activity"></a>code in your activity</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">PullContainer mPullContainer = (PullContainer) findViewById(R.id.base_container);</span><br><span class="line">SimpleHeader simpleHeader = <span class="keyword">new</span> SimpleHeader(<span class="keyword">this</span>);</span><br><span class="line">mPullContainer.setHeaderView(simpleHeader);</span><br><span class="line">mPullContainer.setRefreshCallBack(<span class="keyword">new</span> RefreshCallBack() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onRefreshBegin</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mHandler.postDelayed(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                mPullContainer.refreshComplete();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, <span class="number">2000</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="code-in-your-contentView-xml"><a href="#code-in-your-contentView-xml" class="headerlink" title="code in your contentView xml"></a>code in your contentView xml</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">zalezone.pullrefresh.pullrefreshview.PullContainer</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">"@+id/base_container"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">zalezone.pullrefresh.pullrefreshview.MyContent</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:id</span>=<span class="string">"@+id/my_textview"</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android_custom:layoutMarginLeft</span>=<span class="string">"40dp"</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android_custom:layoutMarginRight</span>=<span class="string">"40dp"</span>/&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">zalezone.pullrefresh.pullrefreshview.PullContainer</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>Look,how easy it is.</p>
+<h2 id="Customizing"><a href="#Customizing" class="headerlink" title="Customizing"></a>Customizing</h2><p>I guess you are wondering to know how to use your own head view with your favourite style.Of course,I also<br>support the most flexible and extandable way for you.</p>
+<h3 id="draw-your-own-head-view"><a href="#draw-your-own-head-view" class="headerlink" title="draw your own head view"></a>draw your own head view</h3><p>For convenience,I offer a simple header view for you in the sample code.You just need to draw your own head view like me.<br>Here is the code of my SimpleHeader</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by zale on 2015/12/9.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleHeader</span> <span class="keyword">extends</span> <span class="title">BaseHeader</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> TextView stateTV;</span><br><span class="line">    <span class="keyword">private</span> ImageView arrowIV;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Animation rotateAn;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SimpleHeader</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>(context, <span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">SimpleHeader</span><span class="params">(Context context, AttributeSet attrs)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(context, attrs);</span><br><span class="line">        init(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">        View headView = LayoutInflater.from(context).inflate(R.layout.item_simple_headview, <span class="keyword">this</span>);</span><br><span class="line">        stateTV = (TextView) headView.findViewById(R.id.state);</span><br><span class="line">        arrowIV = (ImageView) headView.findViewById(R.id.arrow_image);</span><br><span class="line"></span><br><span class="line">        rotateAn = AnimationUtils.loadAnimation(context,R.anim.pull_refresh_arrow_anim);</span><br><span class="line">        LinearInterpolator linearInterpolator = <span class="keyword">new</span> LinearInterpolator();</span><br><span class="line">        rotateAn.setInterpolator(linearInterpolator);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onUIReset</span><span class="params">(Indicator indicator)</span> </span>&#123;</span><br><span class="line">        stateTV.setText(<span class="string">"pull to refresh"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onUIRefreshPerpare</span><span class="params">(Indicator indicator)</span> </span>&#123;</span><br><span class="line">        stateTV.setText(<span class="string">"release to refresh"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onUIRefreshBegin</span><span class="params">(Indicator indicator)</span> </span>&#123;</span><br><span class="line">        stateTV.setText(<span class="string">"refreshing"</span>);</span><br><span class="line">        <span class="keyword">if</span> (rotateAn!=<span class="keyword">null</span>)&#123;</span><br><span class="line">            arrowIV.startAnimation(rotateAn);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onUIRefreshComplete</span><span class="params">(Indicator indicator)</span> </span>&#123;</span><br><span class="line">        stateTV.setText(<span class="string">"refresh complete"</span>);</span><br><span class="line">        arrowIV.clearAnimation();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>All you need to do is to subclass the BaseHeader and override methods in the code.</p>
+<p><strong>warning:you should not override the onUIPositionChange method int your head view because this method is used to control the UI</strong> </p>
+<h3 id="other-custom-styles"><a href="#other-custom-styles" class="headerlink" title="other custom styles"></a>other custom styles</h3><p>Except write the head view by yourself,you can also drive the widget performs like what you want.You are able to use these methods to<br>control the behaviour.</p>
+<p>Class: <strong>zalezone.pullrefresh.pullrefreshview.PullContainer</strong></p>
+<p>Public Methods</p>
+<ul>
+<li><p><strong>void setPullResistance(float resistance)</strong><br>  set the resistance of pulling the view.</p>
+</li>
+<li><p><strong>void setPullCloseDuration(int millisecond)</strong><br>  set the duration of close the content.</p>
+</li>
+<li><p><strong>void set headerCloseDuration(int millisecond)</strong><br>  set the duration of close the header. </p>
+</li>
+</ul>
+<p>more?to to continued..</p>
+<h2 id="Communication"><a href="#Communication" class="headerlink" title="Communication"></a>Communication</h2><p>If you have some suggestions or want to join me to prefect this widget,welcome to contact me.<br>email:<a href="mailto:1433317488@qq.com" target="_blank" rel="noopener">1433317488@qq.com</a>,zalecoder@gmail.com</p>
+
+            
+
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">标签</span><br/>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/android/">android</a> <a class="tag tag--primary tag--small t-link" href="/tags/下拉刷新/">下拉刷新</a> <a class="tag tag--primary tag--small t-link" href="/tags/自定义控件/">自定义控件</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2016/07/20/管理你的app内存/"
+                    data-tooltip="Android内存管理"
+                    aria-label="上一篇: Android内存管理"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2016/01/18/android-opencv环境搭建/"
+                    data-tooltip="android opencv 环境搭建"
+                    aria-label="下一篇: android opencv 环境搭建"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2016/03/01/Android通用下拉刷新/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2016/03/01/Android通用下拉刷新/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2016/03/01/Android通用下拉刷新/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 zhangliukun. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2016/07/20/管理你的app内存/"
+                    data-tooltip="Android内存管理"
+                    aria-label="上一篇: Android内存管理"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2016/01/18/android-opencv环境搭建/"
+                    data-tooltip="android opencv 环境搭建"
+                    aria-label="下一篇: android opencv 环境搭建"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2016/03/01/Android通用下拉刷新/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2016/03/01/Android通用下拉刷新/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2016/03/01/Android通用下拉刷新/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2016/03/01/Android通用下拉刷新/"
+                        aria-label="分享到 Facebook"
+                    >
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>分享到 Facebook</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2016/03/01/Android通用下拉刷新/"
+                        aria-label="分享到 Weibo"
+                    >
+                        <i class="fab fa-weibo" aria-hidden="true"></i><span>分享到 Weibo</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2016/03/01/Android通用下拉刷新/"
+                        aria-label="分享到 Qzone"
+                    >
+                        <i class="fa fa-star" aria-hidden="true"></i><span>分享到 Qzone</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+            <h4 id="about-card-name">zhangliukun</h4>
+        
+            <div id="about-card-bio"><p>天蝎座？</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>学生</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br/>
+                Hangzhou
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-opoomiy5imbn3xwjxebdjebgsd1hwgcbosrvoydvgbs5mjvuui1wxks1q9cr.min.js"></script>
+<!--SCRIPTS END-->
+
+
+    
+
+
+
+
+    </body>
+</html>

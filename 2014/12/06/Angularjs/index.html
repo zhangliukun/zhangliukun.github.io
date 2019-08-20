@@ -1,0 +1,822 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="六锟小站">
+    <title>AngularJS - 六锟小站</title>
+    <meta name="author" content="zhangliukun">
+    
+    
+        <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
+    
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"AngularJS简介AngularJS 是一个 JavaScript 框架。它可通过 script 标签添加到 HTML 页面。\nAngularJS 通过 指令 扩展了 HTML，且通过 表达式 绑定数据到 HTML。\nAngularJS 是以一个 JavaScript 文件形式发布的，可通过 script 标签添加到网页中：\n\n\n我们建议把脚本放在  元素的底部。这会提高网页加载速度，因为 HTML 加载不受制于脚本加载。\n\n\nAngularJS 扩展了 HTMLAngularJS 通过 ng-directives 扩展了 HTML。\nng-app 指令定义一个 AngularJS 应用程序。\nng-model 指令把元素值（比如输入域的值）绑定到应用程序。\nng-bind 指令把应用程序数据绑定到 HTML 视图。\n例：\n1234567891011121314&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;&lt;div ng-app=\"\"&gt;  &lt;p&gt;在输入框中尝试输入：&lt;/p&gt;  &lt;p&gt;姓名：&lt;input type=\"text\" ng-model=\"name\"&gt;&lt;/p&gt;  &lt;p ng-bind=\"name\"&gt;&lt;/p&gt;&lt;/div&gt;&lt;script src=\"//www.w3cschool.cc/try/angularjs/1.2.5/angular.min.js\"&gt;&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;\n\n实例讲解：\n当网页加载完毕，AngularJS 自动开启。\nng-app 指令告诉 AngularJS，div 元素是 AngularJS 应用程序 的”所有者”。\nng-model 指令把输入域的值绑定到应用程序变量 name。\nng-bind 指令把应用程序变量 name 绑定到某个段落的 innerHTML。\n如果您移除了 ng-app 指令，HTML 将直接把表达式显示出来，不会去计算表达式的结果。\nAngularJS 表达式AngularJS 表达式写在双大括号内：。\nAngularJS 表达式把数据绑定到 HTML，这与 ng-bind 指令有异曲同工之妙。\nAngularJS 将在表达式书写的位置”输出”数据。\nAngularJS 表达式 很像 JavaScript 表达式：它们可以包含文字、运算符和变量。\n实例 10 或 undefined undefined\nAngularJS 对象AngularJS 对象就像 JavaScript 对象：\n12345&lt;div ng-app=\"\" ng-init=\"person=&#123;firstName:'John',lastName:'Doe'&#125;\"&gt;&lt;p&gt;姓为 &#123;&#123; person.lastName &#125;&#125;&lt;/p&gt;&lt;/div&gt;\n\nAngularJS 数组AngularJS 数组就像 JavaScript 数组：\n12345&lt;div ng-app=\"\" ng-init=\"points=[1,15,19,2,40]\"&gt;&lt;p&gt;第三个值为 &#123;&#123; points[2] &#125;&#125;&lt;/p&gt;&lt;/div&gt;\n\nAngularJS 指令AngularJS 通过被称为 指令 的新属性来扩展 HTML\nAngularJS 指令是扩展的 HTML 属性，带有前缀 ng-。\nng-app 指令初始化一个 AngularJS 应用程序。\nng-init 指令初始化应用程序数据。\nng-model 指令把应用程序数据绑定到 HTML 元素。\n一个网页可以包含多个运行在不同元素中的 AngularJS 应用程序。\n数据绑定 是通过 ng-model=\"firstName\" 进行同步。\n\n在下一个实例中，两个文本域是通过两个 ng-model 指令同步的：\n12345678910&lt;div ng-app=\"\" ng-init=\"quantity=1;price=5\"&gt;&lt;h2&gt;价格计算器&lt;/h2&gt;数量： &lt;input type=\"number\" ng-model=\"quantity\"&gt;价格： &lt;input type=\"number\" ng-model=\"price\"&gt;&lt;p&gt;&lt;b&gt;总价：&lt;/b&gt; &#123;&#123; quantity * price &#125;&#125;&lt;/p&gt;&lt;/div&gt;\n\n使用 ng-init 不是很常见。您将在控制器一章中学习到一个更好的初始化数据的方式\n重复 HTML 元素12345678910ng-repeat 指令会重复一个 HTML 元素等于读出数组中所有的值&lt;div ng-app=\"\" ng-init=\"names=['Jani','Hege','Kai']\"&gt;  &lt;p&gt;使用 ng-repeat 来循环数组&lt;/p&gt;  &lt;ul&gt;    &lt;li ng-repeat=\"x in names\"&gt;      &#123;&#123; x &#125;&#125;    &lt;/li&gt;  &lt;/ul&gt;&lt;div&gt;\n\nAngularJS 控制器AngularJS 应用程序被控制器控制。\nng-controller 指令定义了应用程序控制器。\n控制器是 JavaScript 对象，由标准的 JavaScript 对象的构造函数 创建。\n控制器的 $scope 是控制器所指向的应用程序 HTML 元素。\n1234567891011121314151617&lt;div ng-app=\"\" ng-controller=\"personController\"&gt;名： &lt;input type=\"text\" ng-model=\"person.firstName\"&gt;&lt;br&gt;姓： &lt;input type=\"text\" ng-model=\"person.lastName\"&gt;&lt;br&gt;&lt;br&gt;姓名： &#123;&#123;person.firstName + \" \" + person.lastName&#125;&#125;&lt;/div&gt;&lt;script&gt;function personController($scope) &#123;    $scope.person = &#123;        firstName: \"John\",        lastName: \"Doe\"    &#125;;&#125;&lt;/script&gt;\n\n实例讲解：\nAngularJS 应用程序由 ng-app 定义。应用程序在  内运行。\nng-controller 指令把控制器命名为 object。\n函数 personController 是一个标准的 JavaScript 对象的构造函数。\n控制器对象有一个属性：$scope.person。\nperson 对象有两个属性：firstName 和 lastName。\nng-model 指令绑定输入域到控制器的属性（firstName 和 lastName）。\n控制器属性控制器也可以把函数作为对象属性\n12345678910111213141516171819202122&lt;div ng-app=\"\" ng-controller=\"personController\"&gt;名： &lt;input type=\"text\" ng-model=\"person.firstName\"&gt;&lt;br&gt;姓： &lt;input type=\"text\" ng-model=\"person.lastName\"&gt;&lt;br&gt;&lt;br&gt;姓名： &#123;&#123;person.fullName()&#125;&#125;&lt;/div&gt;&lt;script&gt;function personController($scope) &#123;    $scope.person = &#123;        firstName: \"John\",        lastName: \"Doe\",        fullName: function() &#123;            var x;            x = $scope.person;            return x.firstName + \" \" + x.lastName;        &#125;    &#125;;&#125;&lt;/script&gt;\n\n控制器方法控制器也可以带有方法\n12345678910111213141516171819202122&lt;div ng-app=\"\" ng-controller=\"personController\"&gt;名： &lt;input type=\"text\" ng-model=\"person.firstName\"&gt;&lt;br&gt;姓： &lt;input type=\"text\" ng-model=\"person.lastName\"&gt;&lt;br&gt;&lt;br&gt;姓名： &#123;&#123;fullName()&#125;&#125;&lt;/div&gt;&lt;script&gt;function personController($scope) &#123;    $scope.person = &#123;        firstName: \"John\",        lastName: \"Doe\",     &#125;;     $scope.fullName = function() &#123;         var x;         x = $scope.person;         return x.firstName + \" \" + x.lastName;     &#125;;&#125;&lt;/script&gt;\n\n外部文件中的控制器在大型的应用程序中，通常是把控制器存储在外部文件中。\n1234567891011&lt;div ng-app=&quot;&quot; ng-controller=&quot;personController&quot;&gt;名： &lt;input type=&quot;text&quot; ng-model=&quot;person.firstName&quot;&gt;&lt;br&gt;姓： &lt;input type=&quot;text&quot; ng-model=&quot;person.lastName&quot;&gt;&lt;br&gt;&lt;br&gt;姓名： &#123;&#123;person.firstName + &quot; &quot; + person.lastName&#125;&#125;&lt;/div&gt;&lt;script src=&quot;personController.js&quot;&gt;&lt;/script&gt;\n\nAngularJS 过滤器AngularJS 过滤器可用于转换数据：\n过滤器     描述\ncurrency     格式化数字为货币格式。\nfilter     从数组项中选择一个子集。\nlowercase     格式化字符串为小写。\norderBy     根据某个表达式排列数组。\nuppercase     格式化字符串为大写。\nuppercase 过滤器格式化字符串为大写：\n12345&lt;div ng-app=\"\" ng-controller=\"personController\"&gt;&lt;p&gt;姓名为 &#123;&#123; person.lastName | 'lowercase' &#125;&#125;&lt;/p&gt;&lt;/div&gt;\n\n过滤输入输入过滤器可以通过一个管道字符（|）和一个过滤器添加到指令中，该过滤器后跟一个冒号和一个模型名称。\nfilter 过滤器从数组中选择一个子集：\nAngularJS XMLHttpRequest$http 是 AngularJS 中的一个核心服务，用于读取远程服务器的数据。\nAngularJS $httpAngularJS $http 是一个用于读取web服务器上数据的服务。\n$http.get(url) 是用于读取服务器数据的函数。 \n12345678910111213141516&lt;div ng-app=\"\" ng-controller=\"customersController\"&gt;&lt;ul&gt;  &lt;li ng-repeat=\"x in names\"&gt;    &#123;&#123; x.Name + ', ' + x.Country &#125;&#125;  &lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&lt;script&gt;function customersController($scope,$http) &#123;    $http.get(\"http://www.w3cschool.cc/try/angularjs/data/Customers_JSON.php\")    .success(function(response) &#123;$scope.names = response;&#125;);&#125;&lt;/script&gt;\n\n应用解析:\nAngularJS 应用通过 ng-app 定义。应用在  中执行。\nng-controller 指令设置了 controller 对象 名。\n函数 customersController 是一个标准的 JavaScript 对象构造器。\n控制器对象有一个属性: $scope.names。\n$http.get() 从web服务器上读取静态 JSON 数据。\n服务器数据文件为：  http://www.w3cschool.cc/try/angularjs/data/Customers_JSON.php。\n当从服务端载入 JSON 数据时，$scope.names 变为一个数组。\n以上代码也可以用于读取数据库数据。\nAngularJS 表格排序显示\n123456789101112131415161718192021222324252627282930313233343536373839404142&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;&lt;style&gt;table, th , td  &#123;  border: 1px solid grey;  border-collapse: collapse;  padding: 5px;&#125;table tr:nth-child(odd)    &#123;  background-color: #f1f1f1;&#125;table tr:nth-child(even) &#123;  background-color: #ffffff;&#125;&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;div ng-app=\"\" ng-controller=\"customersController\"&gt; &lt;table&gt;  &lt;tr ng-repeat=\"x in names | orderBy : 'Country'\"&gt;    &lt;td&gt;&#123;&#123; x.Name &#125;&#125;&lt;/td&gt;    &lt;td&gt;&#123;&#123; x.Country &#125;&#125;&lt;/td&gt;  &lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;script&gt;function customersController($scope,$http) &#123;\t$http.get(\"http://www.w3cschool.cc/try/angularjs/data/Customers_JSON.php\")  .success(function(response) &#123;$scope.names = response;&#125;);&#125;&lt;/script&gt;&lt;script src=\"http://apps.bdimg.com/libs/angular.js/1.2.15/angular.min.js\"&gt;&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;\n\nAngularJS HTML DOMAngularJS 有自己的 HTML 属性指令。\nng-disabled 指令1234567891011&lt;div ng-app=\"\"&gt;&lt;p&gt;&lt;button ng-disabled=\"mySwitch\"&gt;点我！&lt;/button&gt;&lt;/p&gt;&lt;p&gt;&lt;input type=\"checkbox\" ng-model=\"mySwitch\"&gt;按钮&lt;/p&gt;&lt;/div&gt;\n\nng-show 指令1234567&lt;div ng-app=\"\"&gt;&lt;p ng-show=\"true\"&gt;我是可见的。&lt;/p&gt;&lt;p ng-show=\"false\"&gt;我是不可见的。&lt;/p&gt;&lt;/div&gt;\n\n您可以使用一个评估为 true or false 的表达式（比如 ng-show=”hour &lt; 12”）来隐藏和显示 HTML 元素。\n##AngularJS HTML 事件AngularJS 有自己的 HTML 事件指令。\n###ng-click 指令\n1234567&lt;div ng-app=\"\" ng-controller=\"myController\"&gt;&lt;button ng-click=\"count = count + 1\"&gt;点我！&lt;/button&gt;&lt;p&gt;&#123;&#123; count &#125;&#125;&lt;/p&gt;&lt;/div&gt;\n\n###隐藏 HTML 元素ng-hide 指令用于设置应用的一部分 不可见 。\nng-hide=”true” 让 HTML 元素 不可见。\nng-hide=”false” 让元素可见。\nng-show 指令可用于设置应用中的一部分可见 。\nng-show=”false” 可以设置 HTML 元素 不可见。\nng-show=”true” 可以以设置 HTML 元素可见。\n12345678910111213141516171819202122232425&lt;div ng-app=\"\" ng-controller=\"personController\"&gt;&lt;button ng-click=\"toggle()\"&gt;隐藏/显示&lt;/button&gt;&lt;p ng-hide=\"myVar\"&gt;名: &lt;input type=\"text\" ng-model=\"person.firstName\"&gt;&lt;br&gt;姓: &lt;input type=\"text\" ng-model=\"person.lastName\"&gt;&lt;br&gt;&lt;br&gt;姓名: &#123;&#123;person.firstName + \" \" + person.lastName&#125;&#125;&lt;/p&gt;&lt;/div&gt;&lt;script&gt;function personController($scope) &#123;    $scope.person = &#123;        firstName: \"John\",        lastName: \"Doe\"    &#125;;    $scope.myVar = false;    $scope.toggle = function() &#123;        $scope.myVar = !$scope.myVar;    &#125;;&#125;&lt;/script&gt;\n\nAngularJS 模块模块定义了您的应用程序。\n所有的控制器都应该属于一个模块。\n模块保持全局命名空间中的整洁。\nAngularJS 模块实例在本实例中，”myApp.js” 包含了一个应用程序模块定义，”myCtrl.js” 包含了一个控制器：\n123456789101112131415&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;&lt;div ng-app=\"myApp\" ng-controller=\"myCtrl\"&gt;&#123;&#123; firstName + \" \" + lastName &#125;&#125;&lt;/div&gt;&lt;script src=\"//www.w3cschool.cc/try/angularjs/1.2.5/angular.min.js\"&gt;&lt;/script&gt;&lt;script src=\"myApp.js\"&gt;&lt;/script&gt;&lt;script src=\"myCtrl.js\"&gt;&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;\n\n使用一个由 模块 替代的控制器：\n123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;&lt;script src=\"//www.w3cschool.cc/try/angularjs/1.2.5/angular.min.js\"&gt;&lt;/script&gt;&lt;/head&gt;&lt;body&gt;&lt;div ng-app=\"myApp\" ng-controller=\"myCtrl\"&gt;&#123;&#123; firstName + \" \" + lastName &#125;&#125;&lt;/div&gt;&lt;script&gt;var app = angular.module(\"myApp\", []);app.controller(\"myCtrl\", function($scope) &#123;    $scope.firstName = \"John\";    $scope.lastName = \"Doe\";&#125;);&lt;/script&gt;&lt;/body&gt;&lt;/html&gt; ###模块定义应放置在何处？对于 HTML 应用程序，通常建议把所有的脚本都放置在 &lt;body&gt; 元素的最底部。这会提高网页加载速度，因为 HTML 加载不受制于脚本加载。在上面的多个 AngularJS 实例中，您将看到 AngularJS 库是在文档的 &lt;head&gt; 区域被加载。在上面的实例中，AngularJS 在 &lt;head&gt; 元素中被加载，因为对 angular.module 的调用只能在库加载完成后才能进行。另一个解决方案是在 &lt;body&gt; 元素中加载 AngularJS 库，但是必须放置在您的 AngularJS 脚本前面```javascript &lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;&lt;div ng-app=\"myApp\" ng-controller=\"myCtrl\"&gt;&#123;&#123; firstName + \" \" + lastName &#125;&#125;&lt;/div&gt;&lt;script src=\"//www.w3cschool.cc/try/angularjs/1.2.5/angular.min.js\"&gt;&lt;/script&gt;&lt;script&gt;var app = angular.module(\"myApp\", []);app.controller(\"myCtrl\", function($scope) &#123;    $scope.firstName = \"John\";    $scope.lastName = \"Doe\";&#125;);&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;\n\n###AngularJS 应用程序文件现在您已经知道模块是什么以及它们是如何工作的，现在您可以尝试创建您自己的应用程序文件。\n您的应用程序至少应该有一个模块文件，一个控制器文件。\n首先，创建模块文件 “myApp.js”：\n1var app = angular.module(\"myApp\", []);\n\n然后，创建控制器文件。本实例中是 “myCtrl.js”：\n1234app.controller(\"myCtrl\", function($scope) &#123;    $scope.firstName = \"John\";    $scope.lastName = \"Doe\";&#125;);\n\n最后，编辑您的 HTML 页面：\n123456789101112131415&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;&lt;div ng-app=\"myApp\" ng-controller=\"myCtrl\"&gt;&#123;&#123; firstName + \" \" + lastName &#125;&#125;&lt;/div&gt;&lt;script src=\"//www.w3cschool.cc/try/angularjs/1.2.5/angular.min.js\"&gt;&lt;/script&gt;&lt;script src=\"myApp.js\"&gt;&lt;/script&gt;&lt;script src=\"myCtrl.js\"&gt;&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;\n\n##HTML 表单\n12345678910111213141516171819202122&lt;div ng-app=\"\" ng-controller=\"formController\"&gt;  &lt;form novalidate&gt;    First Name:&lt;br&gt;    &lt;input type=\"text\" ng-model=\"user.firstName\"&gt;&lt;br&gt;    Last Name:&lt;br&gt;    &lt;input type=\"text\" ng-model=\"user.lastName\"&gt;    &lt;br&gt;&lt;br&gt;    &lt;button ng-click=\"reset()\"&gt;RESET&lt;/button&gt;  &lt;/form&gt;  &lt;p&gt;form = &#123;&#123;user&#125;&#125;&lt;/p&gt;  &lt;p&gt;master = &#123;&#123;master&#125;&#125;&lt;/p&gt;&lt;/div&gt;&lt;script&gt;function formController ($scope) &#123;    $scope.master = &#123;firstName: \"John\", lastName: \"Doe\"&#125;;    $scope.reset = function() &#123;        $scope.user = angular.copy($scope.master);    &#125;;    $scope.reset();&#125;;&lt;/script&gt;\n\nHTML 属性 novalidate 用于禁用浏览器的默认验证\n##AngularJS 输入验证AngularJS 表单和控件可以提供验证功能，并对用户输入的非法数据进行警告。\n**     客户端的验证不能确保用户输入数据的安全，所以服务端的数据验证也是必须的。**\n123456789101112131415161718192021222324252627282930313233343536373839404142 &lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;&lt;h2&gt;Validation Example&lt;/h2&gt;&lt;form  ng-app=\"\"  ng-controller=\"validateCtrl\"name=\"myForm\" novalidate&gt;&lt;p&gt;Username:&lt;br&gt;  &lt;input type=\"text\" name=\"user\" ng-model=\"user\" required&gt;  &lt;span style=\"color:red\" ng-show=\"myForm.user.$dirty &amp;&amp; myForm.user.$invalid\"&gt;  &lt;span ng-show=\"myForm.user.$error.required\"&gt;Username is required.&lt;/span&gt;  &lt;/span&gt;&lt;/p&gt;&lt;p&gt;Email:&lt;br&gt;  &lt;input type=\"email\" name=\"email\" ng-model=\"email\" required&gt;  &lt;span style=\"color:red\" ng-show=\"myForm.email.$dirty &amp;&amp; myForm.email.$invalid\"&gt;  &lt;span ng-show=\"myForm.email.$error.required\"&gt;Email is required.&lt;/span&gt;  &lt;span ng-show=\"myForm.email.$error.email\"&gt;Invalid email address.&lt;/span&gt;  &lt;/span&gt;&lt;/p&gt;&lt;p&gt;  &lt;input type=\"submit\"  ng-disabled=\"myForm.user.$dirty &amp;&amp; myForm.user.$invalid ||  myForm.email.$dirty &amp;&amp; myForm.email.$invalid\"&gt;&lt;/p&gt;&lt;/form&gt;&lt;script src=\"//apps.bdimg.com/libs/angular.js/1.2.15/angular.min.js\"&gt;&lt;/script&gt;&lt;script&gt;function validateCtrl($scope) &#123;    $scope.user = 'John Doe';    $scope.email = 'john.doe@gmail.com';&#125;&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;\n\n##AngularJS Bootstrap\nAngularJS 的首选样式表是 Twitter Bootstrap， Twitter Bootstrap 是目前最受欢迎的前端框架。\n###Bootstrap\n你可以在你的 AngularJS 应用中加入 Twitter Bootstrap，你可以在你的 元素中添加如下代码:\n1&lt;link rel=\"stylesheet\" href=\"//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css\"&gt;\n\n如果站点在国内，建议使用百度静态资源库的Bootstrap，代码如下：\n1&lt;link rel=\"stylesheet\" href=\"//apps.bdimg.com/libs/bootstrap/3.2.0/css/bootstrap.min.css\"&gt;\n\n以下是一个完整的 HTML 实例, 使用了 AngularJS 指令和 Bootstrap 类。\nHTML 代码\n1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980&lt;html ang-app=\"\"&gt;&lt;head&gt;&lt;link rel=\"stylesheet\" href=\"http://apps.bdimg.com/libs/bootstrap/3.2.0/css/bootstrap.min.css\"&gt;&lt;/head&gt;&lt;body ng-controller=\"userController\"&gt;&lt;div class=\"container\"&gt;&lt;h3&gt;Users&lt;/h3&gt;&lt;table class=\"table table-striped\"&gt;  &lt;thead&gt;&lt;tr&gt;    &lt;th&gt;Edit&lt;/th&gt;    &lt;th&gt;First Name&lt;/th&gt;    &lt;th&gt;Last Name&lt;/th&gt;  &lt;/tr&gt;&lt;/thead&gt;  &lt;tbody&gt;&lt;tr ng-repeat=\"user in users\"&gt;    &lt;td&gt;      &lt;button class=\"btn\" ng-click=\"editUser(user.id)\"&gt;      &lt;span class=\"glyphicon glyphicon-pencil\"&gt;&lt;/span&gt;&amp;nbsp;&amp;nbsp;Edit      &lt;/button&gt;    &lt;/td&gt;    &lt;td&gt;&#123;&#123; user.fName &#125;&#125;&lt;/td&gt;    &lt;td&gt;&#123;&#123; user.lName &#125;&#125;&lt;/td&gt;  &lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;hr&gt;&lt;button class=\"btn btn-success\" ng-click=\"editUser('new')\"&gt;  &lt;span class=\"glyphicon glyphicon-user\"&gt;&lt;/span&gt; Create New User&lt;/button&gt;&lt;hr&gt;&lt;h3 ng-show=\"edit\"&gt;Create New User:&lt;/h3&gt;&lt;h3 ng-hide=\"edit\"&gt;Edit User:&lt;/h3&gt;&lt;form class=\"form-horizontal\"&gt;&lt;div class=\"form-group\"&gt;  &lt;label class=\"col-sm-2 control-label\"&gt;First Name:&lt;/label&gt;  &lt;div class=\"col-sm-10\"&gt;    &lt;input type=\"text\" ng-model=\"fName\" ng-disabled=\"!edit\" placeholder=\"First Name\"&gt;  &lt;/div&gt;&lt;/div&gt;&lt;div class=\"form-group\"&gt;  &lt;label class=\"col-sm-2 control-label\"&gt;Last Name:&lt;/label&gt;  &lt;div class=\"col-sm-10\"&gt;    &lt;input type=\"text\" ng-model=\"lName\" ng-disabled=\"!edit\" placeholder=\"Last Name\"&gt;  &lt;/div&gt;&lt;/div&gt;&lt;div class=\"form-group\"&gt;  &lt;label class=\"col-sm-2 control-label\"&gt;Password:&lt;/label&gt;  &lt;div class=\"col-sm-10\"&gt;    &lt;input type=\"password\" ng-model=\"passw1\" placeholder=\"Password\"&gt;  &lt;/div&gt;&lt;/div&gt;&lt;div class=\"form-group\"&gt;  &lt;label class=\"col-sm-2 control-label\"&gt;Repeat:&lt;/label&gt;  &lt;div class=\"col-sm-10\"&gt;    &lt;input type=\"password\" ng-model=\"passw2\" placeholder=\"Repeat Password\"&gt;  &lt;/div&gt;&lt;/div&gt;&lt;/form&gt;&lt;hr&gt;&lt;button class=\"btn btn-success\" ng-disabled=\"error || incomplete\"&gt;  &lt;span class=\"glyphicon glyphicon-save\"&gt;&lt;/span&gt; Save Changes&lt;/button&gt;&lt;/div&gt;&lt;script src = \"http://apps.bdimg.com/libs/angular.js/1.2.15/angular.min.js\"&gt;&lt;/script&gt;&lt;script src = \"myUsers.js\"&gt;&lt;/script&gt;&lt;button ng-click=\"clear()\"&gt;清除&lt;/button&gt;&lt;/p&gt;&lt;p&gt;剩下的字符数：&lt;span ng-bind=\"left()\"&gt;&lt;/span&gt;&lt;/p&gt;&lt;/div&gt;&lt;script src=\"myTodoApp.js\"&gt;&lt;/script&gt;&lt;script src=\"myTodoCtrl.js\"&gt;&lt;/script&gt;\n\n应用程序文件 “myTodoApp.js”：\n1var app = angular.module(\"myTodoApp\", []);\n\n控制器文件 “myTodoCtrl.js”：\n123456app.controller(\"myTodoCtrl\", function($scope) &#123;    $scope.message = \"\";    $scope.left  = function() &#123;return 100 - $scope.message.length;&#125;;    $scope.clear = function() &#123;$scope.message=\"\";&#125;;    $scope.save  = function() &#123;$scope.message=\"\";&#125;;&#125;);\n\nHTML 页面中的一个 ，指向 ng-app=”myTodoApp” 和 ng-controller=”myTodoCtrl”：\n1&lt;div ng-app=\"myTodoApp\" ng-controller=\"myTodoCtrl\"&gt;\n\n一个 ng-model 指令，绑定一个 textarea 到控制器变量 message：\n1&lt;textarea ng-model=\"message\" cols=\"40\" rows=\"10\"&gt;&lt;/textarea&gt;\n\n两个 ng-click 事件，调用控制器函数 clear() 和 save()：\n12&lt;button ng-click=\"save()\"&gt;保存&lt;/button&gt;&lt;button ng-click=\"clear()\"&gt;清除&lt;/button&gt;\n\n一个 ng-bind 指令，绑定控制器函数 left() 到一个 ，字符会向左对齐显示：\n1剩下的字符数：&lt;span ng-bind=\"left()\"&gt;&lt;/span&gt;\n\n两个应用程序库被添加到 HTML 页面：\n12&lt;script src=\"myTodoApp.js\"&gt;&lt;/script&gt;&lt;script src=\"myTodoCtrl.js\"&gt;&lt;/script&gt;\n\n更多AngularJS参考手册\n\n\n\n12345678910111213141516171819###Bootstrap 类解析```javascript元素        Bootstrap 类       定义&lt;div&gt;       container           内容容器&lt;table&gt;   table               表格&lt;table&gt;   table-striped       带条纹背景的表格&lt;button&gt;  btn               按钮&lt;button&gt;  btn-success       成功按钮&lt;span&gt;      glyphicon           字形图标&lt;span&gt;      glyphicon-pencil  铅笔图标&lt;span&gt;      glyphicon-user    用户图标&lt;span&gt;      glyphicon-save    保存图标&lt;form&gt;      form-horizontal   水平表格&lt;div&gt;     form-group        表单组&lt;label&gt;   control-label     控制器标签&lt;label&gt;   col-sm-2          跨越 2 列&lt;div&gt;     col-sm-10         跨越 10 列\n\n###JavaScript 代码\n1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950function userController($scope) &#123;$scope.fName = '';$scope.lName = '';$scope.passw1 = '';$scope.passw2 = '';$scope.users = [&#123;id:1, fName:'Hege',  lName:\"Pege\" &#125;,&#123;id:2, fName:'Kim',   lName:\"Pim\" &#125;,&#123;id:3, fName:'Sal',   lName:\"Smith\" &#125;,&#123;id:4, fName:'Jack',  lName:\"Jones\" &#125;,&#123;id:5, fName:'John',  lName:\"Doe\" &#125;,&#123;id:6, fName:'Peter', lName:\"Pan\" &#125;];$scope.edit = true;$scope.error = false;$scope.incomplete = false;$scope.editUser = function(id) &#123;  if (id == 'new') &#123;    $scope.edit = true;    $scope.incomplete = true;    $scope.fName = '';    $scope.lName = '';    &#125; else &#123;    $scope.edit = false;    $scope.fName = $scope.users[id-1].fName;    $scope.lName = $scope.users[id-1].lName;  &#125;&#125;;$scope.$watch('passw1',function() &#123;$scope.test();&#125;);$scope.$watch('passw2',function() &#123;$scope.test();&#125;);$scope.$watch('fName', function() &#123;$scope.test();&#125;);$scope.$watch('lName', function() &#123;$scope.test();&#125;);$scope.test = function() &#123;  if ($scope.passw1 !== $scope.passw2) &#123;    $scope.error = true;    &#125; else &#123;    $scope.error = false;  &#125;  $scope.incomplete = false;  if ($scope.edit &amp;&amp; (!$scope.fName.length ||  !$scope.lName.length ||  !$scope.passw1.length || !$scope.passw2.length)) &#123;       $scope.incomplete = true;  &#125;&#125;;&#125;\n\n###JavaScript 代码解析\n123456789101112Scope 属性     用途$scope.fName  模型变量 (用户名)$scope.lName  模型变量 (用户姓)$scope.passw1   模型变量 (用户密码 1)$scope.passw2   模型变量 (用户密码 2)$scope.users  模型变量 (用户的数组)$scope.edit   当用户点击创建用户时设置为true。$scope.error  如果 passw1 不等于 passw2 设置为 true$scope.incomplete   如果每个字段都为空(length = 0)设置为 true$scope.editUser   设置模型变量$scope.watch  监控模型变量$scope.test   验证模型变量的错误和完整性\n\n##AngularJS Include（包含）使用 AngularJS, 你可以在 HTML 中包含 HTML 文件。\n###服务端包含\n大部分web服务器支持服务端脚本的包含 (SSI：Server Side Includes)。\n使用 SSI, 你可以在HTML页面发送至浏览器前包含 HTML。PHP 实例\n1&lt;?php require(\"navigation.php\"); ?&gt;\n\n###客户端包含\n客户端在 HTML 中使用 JavaScript 有多种方式可以包含 HTML 文件。\n通常我们使用 http 请求 (AJAX) 从服务端获取数据，返回的数据我们可以通过 使用 innerHTML 写入到 HTML 元素中。 \n###AngularJS 包含\n使用 AngularJS, 你可以使用 ng-include 指令来包含 HTML 内容:实例\n123456&lt;body&gt;&lt;div class=\"container\"&gt;  &lt;div ng-include=\"'myUsers_List.htm'\"&gt;&lt;/div&gt;  &lt;div ng-include=\"'myUsers_Form.htm'\"&gt;&lt;/div&gt;&lt;/div&gt;\n\n\n\n##AngularJS 应用程序实例\n###Html文件\n &lt;div ng-app=\"myTodoApp\" ng-controller=\"myTodoCtrl\"&gt;\n\n&lt;h2&gt;我的笔记&lt;/h2&gt;\n\n&lt;p&gt;&lt;textarea ng-model=\"message\" cols=\"40\" rows=\"10\"&gt;&lt;/textarea&gt;&lt;/p&gt;\n\n&lt;p&gt;\n&lt;button ng-click=\"save()\"&gt;保存&lt;/button&gt;\n","dateCreated":"2014-12-06T00:32:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2014-12-06T00:32:00+08:00","description":"AngularJS简介AngularJS 是一个 JavaScript 框架。它可通过 script 标签添加到 HTML 页面。\nAngularJS 通过 指令 扩展了 HTML，且通过 表达式 绑定数据到 HTML。\nAngularJS 是以一个 JavaScript 文件形式发布的，可通过 script 标签添加到网页中：\n\n\n我们建议把脚本放在  元素的底部。这会提高网页加载速度，因为 HTML 加载不受制于脚本加载。","headline":"AngularJS","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2014/12/06/Angularjs/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2014/12/06/Angularjs/","keywords":"AngularJS, 前端"}</script>
+    <meta name="description" content="初识AngularJs">
+<meta name="keywords" content="AngularJS,前端">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="AngularJS">
+<meta property="og:url" content="http://zhangliukun.cn/2014/12/06/Angularjs/index.html">
+<meta property="og:site_name" content="六锟小站">
+<meta property="og:description" content="初识AngularJs">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:updated_time" content="2019-08-20T12:14:42.839Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AngularJS">
+<meta name="twitter:description" content="初识AngularJs">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="http://zhangliukun.cn/assets/images/avatar.jpg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-4iwpnc93lrhj5xhp85jwjyjr2detotwl3e6te5tkbp5mthm9fmtbqzvsi9tc.min.css">
+    <!--STYLES END-->
+    
+
+    
+
+    
+        
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a
+            class="header-title-link"
+            href="/ "
+            aria-label=""
+        >
+            六锟小站
+        </a>
+    </div>
+    
+        
+            <a
+                class="header-right-picture "
+                href="#about"
+                aria-label="打开链接: /#about"
+            >
+        
+        
+            <img class="header-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a
+                    href="/#about"
+                    aria-label="阅读有关作者的更多信息"
+                >
+                    <img class="sidebar-profile-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+                </a>
+                <h4 class="sidebar-profile-name">zhangliukun</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>天蝎座？</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="首页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">首页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-tags"
+                            
+                            title="标签"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">标签</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-archives"
+                            
+                            title="归档"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">归档</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="#about"
+                            
+                            title="关于"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">关于</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/zhangliukun" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.facebook.com/zhang.zale" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fab fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/assets/love/index.html"
+                            title="Love"
+                        >
+                    
+                        <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Love</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/mailto"
+                            title="邮箱"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">邮箱</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            AngularJS
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2014-12-06T00:32:00+08:00">
+	
+		    12月 06, 2014
+    	
+    </time>
+    
+        <span>发布在 </span>
+        
+    <a class="category-link" href="/categories/前端/">前端</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="AngularJS简介"><a href="#AngularJS简介" class="headerlink" title="AngularJS简介"></a>AngularJS简介</h2><p>AngularJS 是一个 JavaScript 框架。它可通过 script 标签添加到 HTML 页面。</p>
+<p>AngularJS 通过 指令 扩展了 HTML，且通过 表达式 绑定数据到 HTML。</p>
+<p>AngularJS 是以一个 JavaScript 文件形式发布的，可通过 script 标签添加到网页中：</p>
+<!--<script src="//www.w3cschool.cc/try/angularjs/1.2.5/angular.min.js"></script> -->
+
+<p><strong>我们建议把脚本放在 <body> 元素的底部。这会提高网页加载速度，因为 HTML 加载不受制于脚本加载。</body></strong></p>
+<a id="more"></a>
+
+<h2 id="AngularJS-扩展了-HTML"><a href="#AngularJS-扩展了-HTML" class="headerlink" title="AngularJS 扩展了 HTML"></a>AngularJS 扩展了 HTML</h2><p>AngularJS 通过 ng-directives 扩展了 HTML。</p>
+<p><strong>ng-app</strong> 指令定义一个 AngularJS 应用程序。</p>
+<p><strong>ng-model</strong> 指令把元素值（比如输入域的值）绑定到应用程序。</p>
+<p><strong>ng-bind</strong> 指令把应用程序数据绑定到 HTML 视图。</p>
+<p>例：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line"></span><br><span class="line">&lt;div ng-app=<span class="string">""</span>&gt;</span><br><span class="line">  &lt;p&gt;在输入框中尝试输入：&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp">  &lt;p&gt;姓名：&lt;input type="text" ng-model="name"&gt;&lt;/</span>p&gt;</span><br><span class="line">  &lt;p ng-bind=<span class="string">"name"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line">&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;script src="/</span><span class="regexp">/www.w3cschool.cc/</span><span class="keyword">try</span>/angularjs/<span class="number">1.2</span><span class="number">.5</span>/angular.min.js<span class="string">"&gt;&lt;/script&gt;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&lt;/body&gt;</span></span><br><span class="line"><span class="string">&lt;/html&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>实例讲解：</p>
+<p>当网页加载完毕，AngularJS 自动开启。</p>
+<p>ng-app 指令告诉 AngularJS，div 元素是 AngularJS 应用程序 的”所有者”。</p>
+<p>ng-model 指令把输入域的值绑定到应用程序变量 name。</p>
+<p>ng-bind 指令把应用程序变量 name 绑定到某个段落的 innerHTML。</p>
+<p><strong>如果您移除了 ng-app 指令，HTML 将直接把表达式显示出来，不会去计算表达式的结果。</strong></p>
+<h2 id="AngularJS-表达式"><a href="#AngularJS-表达式" class="headerlink" title="AngularJS 表达式"></a>AngularJS 表达式</h2><p>AngularJS 表达式写在双大括号内：。</p>
+<p>AngularJS 表达式把数据绑定到 HTML，这与 ng-bind 指令有异曲同工之妙。</p>
+<p>AngularJS 将在表达式书写的位置”输出”数据。</p>
+<p>AngularJS 表达式 很像 JavaScript 表达式：它们可以包含文字、运算符和变量。</p>
+<p>实例 10 或 undefined undefined</p>
+<h2 id="AngularJS-对象"><a href="#AngularJS-对象" class="headerlink" title="AngularJS 对象"></a>AngularJS 对象</h2><p>AngularJS 对象就像 JavaScript 对象：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">""</span> ng-init=<span class="string">"person=&#123;firstName:'John',lastName:'Doe'&#125;"</span>&gt;</span><br><span class="line"></span><br><span class="line">&lt;p&gt;姓为 &#123;&#123; person.lastName &#125;&#125;&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;/</span>div&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="AngularJS-数组"><a href="#AngularJS-数组" class="headerlink" title="AngularJS 数组"></a>AngularJS 数组</h2><p>AngularJS 数组就像 JavaScript 数组：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">""</span> ng-init=<span class="string">"points=[1,15,19,2,40]"</span>&gt;</span><br><span class="line"></span><br><span class="line">&lt;p&gt;第三个值为 &#123;&#123; points[<span class="number">2</span>] &#125;&#125;&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;/</span>div&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="AngularJS-指令"><a href="#AngularJS-指令" class="headerlink" title="AngularJS 指令"></a>AngularJS 指令</h2><p>AngularJS 通过被称为 指令 的新属性来扩展 HTML</p>
+<p>AngularJS 指令是扩展的 HTML 属性，带有前缀 ng-。</p>
+<p>ng-app 指令初始化一个 AngularJS 应用程序。</p>
+<p>ng-init 指令初始化应用程序数据。</p>
+<p>ng-model 指令把应用程序数据绑定到 HTML 元素。</p>
+<p><strong>一个网页可以包含多个运行在不同元素中的 AngularJS 应用程序。</strong></p>
+<h2 id="数据绑定"><a href="#数据绑定" class="headerlink" title="数据绑定"></a>数据绑定</h2> 是通过 ng-model="firstName" 进行同步。
+
+<p>在下一个实例中，两个文本域是通过两个 ng-model 指令同步的：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">""</span> ng-init=<span class="string">"quantity=1;price=5"</span>&gt;</span><br><span class="line"></span><br><span class="line">&lt;h2&gt;价格计算器&lt;<span class="regexp">/h2&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">数量： &lt;input type="number" ng-model="quantity"&gt;</span></span><br><span class="line"><span class="regexp">价格： &lt;input type="number" ng-model="price"&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;p&gt;&lt;b&gt;总价：&lt;/</span>b&gt; &#123;&#123; quantity * price &#125;&#125;&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;/</span>div&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用 ng-init 不是很常见。您将在控制器一章中学习到一个更好的初始化数据的方式</strong></p>
+<h2 id="重复-HTML-元素"><a href="#重复-HTML-元素" class="headerlink" title="重复 HTML 元素"></a>重复 HTML 元素</h2><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ng-repeat 指令会重复一个 HTML 元素等于读出数组中所有的值</span><br><span class="line"></span><br><span class="line">&lt;div ng-app=<span class="string">""</span> ng-init=<span class="string">"names=['Jani','Hege','Kai']"</span>&gt;</span><br><span class="line">  &lt;p&gt;使用 ng-repeat 来循环数组&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp">  &lt;ul&gt;</span></span><br><span class="line"><span class="regexp">    &lt;li ng-repeat="x in names"&gt;</span></span><br><span class="line"><span class="regexp">      &#123;&#123; x &#125;&#125;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>li&gt;</span><br><span class="line">  &lt;<span class="regexp">/ul&gt;</span></span><br><span class="line"><span class="regexp">&lt;div&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="AngularJS-控制器"><a href="#AngularJS-控制器" class="headerlink" title="AngularJS 控制器"></a>AngularJS 控制器</h2><p>AngularJS 应用程序被控制器控制。</p>
+<p>ng-controller 指令定义了应用程序控制器。</p>
+<p>控制器是 JavaScript 对象，由标准的 JavaScript 对象的构造函数 创建。</p>
+<p>控制器的 $scope 是控制器所指向的应用程序 HTML 元素。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">""</span> ng-controller=<span class="string">"personController"</span>&gt;</span><br><span class="line"></span><br><span class="line">名： &lt;input type=<span class="string">"text"</span> ng-model=<span class="string">"person.firstName"</span>&gt;<span class="xml"><span class="tag">&lt;<span class="name">br</span>&gt;</span></span></span><br><span class="line">姓： &lt;input type="text" ng-model="person.lastName"&gt;&lt;br&gt;</span><br><span class="line">&lt;br&gt;</span><br><span class="line">姓名： &#123;&#123;person.firstName + " " + person.lastName&#125;&#125;</span><br><span class="line"></span><br><span class="line">&lt;/div&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">function personController($scope) &#123;</span><br><span class="line">    $scope.person = &#123;</span><br><span class="line">        firstName: "John",</span><br><span class="line">        lastName: "Doe"</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>实例讲解：</p>
+<p>AngularJS 应用程序由 ng-app 定义。应用程序在 <div> 内运行。</div></p>
+<p>ng-controller 指令把控制器命名为 object。</p>
+<p>函数 personController 是一个标准的 JavaScript 对象的构造函数。</p>
+<p>控制器对象有一个属性：$scope.person。</p>
+<p>person 对象有两个属性：firstName 和 lastName。</p>
+<p>ng-model 指令绑定输入域到控制器的属性（firstName 和 lastName）。</p>
+<h2 id="控制器属性"><a href="#控制器属性" class="headerlink" title="控制器属性"></a>控制器属性</h2><p>控制器也可以把函数作为对象属性</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">""</span> ng-controller=<span class="string">"personController"</span>&gt;</span><br><span class="line"></span><br><span class="line">名： &lt;input type=<span class="string">"text"</span> ng-model=<span class="string">"person.firstName"</span>&gt;<span class="xml"><span class="tag">&lt;<span class="name">br</span>&gt;</span></span></span><br><span class="line">姓： &lt;input type="text" ng-model="person.lastName"&gt;&lt;br&gt;</span><br><span class="line">&lt;br&gt;</span><br><span class="line">姓名： &#123;&#123;person.fullName()&#125;&#125;</span><br><span class="line"></span><br><span class="line">&lt;/div&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">function personController($scope) &#123;</span><br><span class="line">    $scope.person = &#123;</span><br><span class="line">        firstName: "John",</span><br><span class="line">        lastName: "Doe",</span><br><span class="line">        fullName: function() &#123;</span><br><span class="line">            var x;</span><br><span class="line">            x = $scope.person;</span><br><span class="line">            return x.firstName + " " + x.lastName;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="控制器方法"><a href="#控制器方法" class="headerlink" title="控制器方法"></a>控制器方法</h2><p>控制器也可以带有方法</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">""</span> ng-controller=<span class="string">"personController"</span>&gt;</span><br><span class="line"></span><br><span class="line">名： &lt;input type=<span class="string">"text"</span> ng-model=<span class="string">"person.firstName"</span>&gt;<span class="xml"><span class="tag">&lt;<span class="name">br</span>&gt;</span></span></span><br><span class="line">姓： &lt;input type="text" ng-model="person.lastName"&gt;&lt;br&gt;</span><br><span class="line">&lt;br&gt;</span><br><span class="line">姓名： &#123;&#123;fullName()&#125;&#125;</span><br><span class="line"></span><br><span class="line">&lt;/div&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">function personController($scope) &#123;</span><br><span class="line">    $scope.person = &#123;</span><br><span class="line">        firstName: "John",</span><br><span class="line">        lastName: "Doe",</span><br><span class="line">     &#125;;</span><br><span class="line">     $scope.fullName = function() &#123;</span><br><span class="line">         var x;</span><br><span class="line">         x = $scope.person;</span><br><span class="line">         return x.firstName + " " + x.lastName;</span><br><span class="line">     &#125;;</span><br><span class="line">&#125;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="外部文件中的控制器"><a href="#外部文件中的控制器" class="headerlink" title="外部文件中的控制器"></a>外部文件中的控制器</h2><p>在大型的应用程序中，通常是把控制器存储在外部文件中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&lt;div ng-app=&quot;&quot; ng-controller=&quot;personController&quot;&gt;</span><br><span class="line"></span><br><span class="line">名： &lt;input type=&quot;text&quot; ng-model=&quot;person.firstName&quot;&gt;&lt;br&gt;</span><br><span class="line">姓： &lt;input type=&quot;text&quot; ng-model=&quot;person.lastName&quot;&gt;&lt;br&gt;</span><br><span class="line">&lt;br&gt;</span><br><span class="line">姓名： &#123;&#123;person.firstName + &quot; &quot; + person.lastName&#125;&#125;</span><br><span class="line"></span><br><span class="line">&lt;/div&gt;</span><br><span class="line"></span><br><span class="line">&lt;script src=&quot;personController.js&quot;&gt;&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="AngularJS-过滤器"><a href="#AngularJS-过滤器" class="headerlink" title="AngularJS 过滤器"></a>AngularJS 过滤器</h2><p>AngularJS 过滤器可用于转换数据：</p>
+<p>过滤器     描述</p>
+<p>currency     格式化数字为货币格式。</p>
+<p>filter     从数组项中选择一个子集。</p>
+<p>lowercase     格式化字符串为小写。</p>
+<p>orderBy     根据某个表达式排列数组。</p>
+<p>uppercase     格式化字符串为大写。</p>
+<p>uppercase 过滤器格式化字符串为大写：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">""</span> ng-controller=<span class="string">"personController"</span>&gt;</span><br><span class="line"></span><br><span class="line">&lt;p&gt;姓名为 &#123;&#123; person.lastName | <span class="string">'lowercase'</span> &#125;&#125;&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;/</span>div&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="过滤输入"><a href="#过滤输入" class="headerlink" title="过滤输入"></a>过滤输入</h3><p>输入过滤器可以通过一个管道字符（|）和一个过滤器添加到指令中，该过滤器后跟一个冒号和一个模型名称。</p>
+<p>filter 过滤器从数组中选择一个子集：</p>
+<h2 id="AngularJS-XMLHttpRequest"><a href="#AngularJS-XMLHttpRequest" class="headerlink" title="AngularJS XMLHttpRequest"></a>AngularJS XMLHttpRequest</h2><p>$http 是 AngularJS 中的一个核心服务，用于读取远程服务器的数据。</p>
+<h3 id="AngularJS-http"><a href="#AngularJS-http" class="headerlink" title="AngularJS $http"></a>AngularJS $http</h3><p>AngularJS $http 是一个用于读取web服务器上数据的服务。</p>
+<p>$http.get(url) 是用于读取服务器数据的函数。 </p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">""</span> ng-controller=<span class="string">"customersController"</span>&gt;</span><br><span class="line"></span><br><span class="line">&lt;ul&gt;</span><br><span class="line">  &lt;li ng-repeat=<span class="string">"x in names"</span>&gt;</span><br><span class="line">    &#123;&#123; x.Name + <span class="string">', '</span> + x.Country &#125;&#125;</span><br><span class="line">  &lt;<span class="regexp">/li&gt;</span></span><br><span class="line"><span class="regexp">&lt;/u</span>l&gt;</span><br><span class="line"></span><br><span class="line">&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;script&gt;</span></span><br><span class="line"><span class="regexp">function customersController($scope,$http) &#123;</span></span><br><span class="line"><span class="regexp">    $http.get("http:/</span><span class="regexp">/www.w3cschool.cc/</span><span class="keyword">try</span>/angularjs/data/Customers_JSON.php<span class="string">")</span></span><br><span class="line"><span class="string">    .success(function(response) &#123;$scope.names = response;&#125;);</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">&lt;/script&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>应用解析:</p>
+<p>AngularJS 应用通过 ng-app 定义。应用在 <div> 中执行。</div></p>
+<p>ng-controller 指令设置了 controller 对象 名。</p>
+<p>函数 customersController 是一个标准的 JavaScript 对象构造器。</p>
+<p>控制器对象有一个属性: $scope.names。</p>
+<p>$http.get() 从web服务器上读取静态 JSON 数据。</p>
+<p>服务器数据文件为：  <a href="http://www.w3cschool.cc/try/angularjs/data/Customers_JSON.php。" target="_blank" rel="noopener">http://www.w3cschool.cc/try/angularjs/data/Customers_JSON.php。</a></p>
+<p>当从服务端载入 JSON 数据时，$scope.names 变为一个数组。</p>
+<p><strong>以上代码也可以用于读取数据库数据。</strong></p>
+<h2 id="AngularJS-表格"><a href="#AngularJS-表格" class="headerlink" title="AngularJS 表格"></a>AngularJS 表格</h2><p>排序显示</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">&lt;style&gt;</span><br><span class="line">table, th , td  &#123;</span><br><span class="line">  border: <span class="number">1</span>px solid grey;</span><br><span class="line">  border-collapse: collapse;</span><br><span class="line">  padding: <span class="number">5</span>px;</span><br><span class="line">&#125;</span><br><span class="line">table tr:nth-child(odd)    &#123;</span><br><span class="line">  background-color: #f1f1f1;</span><br><span class="line">&#125;</span><br><span class="line">table tr:nth-child(even) &#123;</span><br><span class="line">  background-color: #ffffff;</span><br><span class="line">&#125;</span><br><span class="line">&lt;<span class="regexp">/style&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>head&gt;</span><br><span class="line"></span><br><span class="line">&lt;body&gt;</span><br><span class="line"></span><br><span class="line">&lt;div ng-app=<span class="string">""</span> ng-controller=<span class="string">"customersController"</span>&gt; </span><br><span class="line"></span><br><span class="line">&lt;table&gt;</span><br><span class="line">  &lt;tr ng-repeat=<span class="string">"x in names | orderBy : 'Country'"</span>&gt;</span><br><span class="line">    &lt;td&gt;&#123;&#123; x.Name &#125;&#125;&lt;<span class="regexp">/td&gt;</span></span><br><span class="line"><span class="regexp">    &lt;td&gt;&#123;&#123; x.Country &#125;&#125;&lt;/</span>td&gt;</span><br><span class="line">  &lt;<span class="regexp">/tr&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>table&gt;</span><br><span class="line"></span><br><span class="line">&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;script&gt;</span></span><br><span class="line"><span class="regexp">function customersController($scope,$http) &#123;</span></span><br><span class="line"><span class="regexp">	$http.get("http:/</span><span class="regexp">/www.w3cschool.cc/</span><span class="keyword">try</span>/angularjs/data/Customers_JSON.php<span class="string">")</span></span><br><span class="line"><span class="string">  .success(function(response) &#123;$scope.names = response;&#125;);</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">&lt;/script&gt;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&lt;script src="</span>http:<span class="comment">//apps.bdimg.com/libs/angular.js/1.2.15/angular.min.js"&gt;&lt;/script&gt;</span></span><br><span class="line"></span><br><span class="line">&lt;<span class="regexp">/body&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>html&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="AngularJS-HTML-DOM"><a href="#AngularJS-HTML-DOM" class="headerlink" title="AngularJS HTML DOM"></a>AngularJS HTML DOM</h2><p>AngularJS 有自己的 HTML 属性指令。</p>
+<h3 id="ng-disabled-指令"><a href="#ng-disabled-指令" class="headerlink" title="ng-disabled 指令"></a>ng-disabled 指令</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">""</span>&gt;</span><br><span class="line"></span><br><span class="line">&lt;p&gt;</span><br><span class="line">&lt;button ng-disabled=<span class="string">"mySwitch"</span>&gt;点我！&lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>p&gt;</span><br><span class="line"></span><br><span class="line">&lt;p&gt;</span><br><span class="line">&lt;input type=<span class="string">"checkbox"</span> ng-model=<span class="string">"mySwitch"</span>&gt;按钮</span><br><span class="line">&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;/</span>div&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ng-show-指令"><a href="#ng-show-指令" class="headerlink" title="ng-show 指令"></a>ng-show 指令</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">""</span>&gt;</span><br><span class="line"></span><br><span class="line">&lt;p ng-show=<span class="string">"true"</span>&gt;我是可见的。&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;p ng-show="false"&gt;我是不可见的。&lt;/</span>p&gt;</span><br><span class="line"></span><br><span class="line">&lt;<span class="regexp">/div&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>您可以使用一个评估为 true or false 的表达式（比如 ng-show=”hour &lt; 12”）来隐藏和显示 HTML 元素。</p>
+<p>##AngularJS HTML 事件<br>AngularJS 有自己的 HTML 事件指令。</p>
+<p>###ng-click 指令</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">""</span> ng-controller=<span class="string">"myController"</span>&gt;</span><br><span class="line"></span><br><span class="line">&lt;button ng-click=<span class="string">"count = count + 1"</span>&gt;点我！&lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;p&gt;&#123;&#123; count &#125;&#125;&lt;/</span>p&gt;</span><br><span class="line"></span><br><span class="line">&lt;<span class="regexp">/div&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>###隐藏 HTML 元素<br>ng-hide 指令用于设置应用的一部分 不可见 。</p>
+<p>ng-hide=”true” 让 HTML 元素 不可见。</p>
+<p>ng-hide=”false” 让元素可见。</p>
+<p>ng-show 指令可用于设置应用中的一部分可见 。</p>
+<p>ng-show=”false” 可以设置 HTML 元素 不可见。</p>
+<p>ng-show=”true” 可以以设置 HTML 元素可见。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">""</span> ng-controller=<span class="string">"personController"</span>&gt;</span><br><span class="line"></span><br><span class="line">&lt;button ng-click=<span class="string">"toggle()"</span>&gt;隐藏/显示&lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;p ng-hide="myVar"&gt;</span></span><br><span class="line"><span class="regexp">名: &lt;input type="text" ng-model="person.firstName"&gt;&lt;br&gt;</span></span><br><span class="line"><span class="regexp">姓: &lt;input type="text" ng-model="person.lastName"&gt;&lt;br&gt;</span></span><br><span class="line"><span class="regexp">&lt;br&gt;</span></span><br><span class="line"><span class="regexp">姓名: &#123;&#123;person.firstName + " " + person.lastName&#125;&#125;</span></span><br><span class="line"><span class="regexp">&lt;/</span>p&gt;</span><br><span class="line"></span><br><span class="line">&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;script&gt;</span></span><br><span class="line"><span class="regexp">function personController($scope) &#123;</span></span><br><span class="line"><span class="regexp">    $scope.person = &#123;</span></span><br><span class="line"><span class="regexp">        firstName: "John",</span></span><br><span class="line"><span class="regexp">        lastName: "Doe"</span></span><br><span class="line"><span class="regexp">    &#125;;</span></span><br><span class="line"><span class="regexp">    $scope.myVar = false;</span></span><br><span class="line"><span class="regexp">    $scope.toggle = function() &#123;</span></span><br><span class="line"><span class="regexp">        $scope.myVar = !$scope.myVar;</span></span><br><span class="line"><span class="regexp">    &#125;;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp">&lt;/</span>script&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="AngularJS-模块"><a href="#AngularJS-模块" class="headerlink" title="AngularJS 模块"></a>AngularJS 模块</h2><p>模块定义了您的应用程序。</p>
+<p>所有的控制器都应该属于一个模块。</p>
+<p>模块保持全局命名空间中的整洁。</p>
+<h3 id="AngularJS-模块实例"><a href="#AngularJS-模块实例" class="headerlink" title="AngularJS 模块实例"></a>AngularJS 模块实例</h3><p>在本实例中，”myApp.js” 包含了一个应用程序模块定义，”myCtrl.js” 包含了一个控制器：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line"></span><br><span class="line">&lt;div ng-app=<span class="string">"myApp"</span> ng-controller=<span class="string">"myCtrl"</span>&gt;</span><br><span class="line">&#123;&#123; firstName + <span class="string">" "</span> + lastName &#125;&#125;</span><br><span class="line">&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;script src="/</span><span class="regexp">/www.w3cschool.cc/</span><span class="keyword">try</span>/angularjs/<span class="number">1.2</span><span class="number">.5</span>/angular.min.js<span class="string">"&gt;&lt;/script&gt;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&lt;script src="</span>myApp.js<span class="string">"&gt;&lt;/script&gt;</span></span><br><span class="line"><span class="string">&lt;script src="</span>myCtrl.js<span class="string">"&gt;&lt;/script&gt;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&lt;/body&gt;</span></span><br><span class="line"><span class="string">&lt;/html&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>使用一个由 模块 替代的控制器：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">&lt;script src=<span class="string">"//www.w3cschool.cc/try/angularjs/1.2.5/angular.min.js"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line">&lt;<span class="regexp">/head&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;body&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;div ng-app="myApp" ng-controller="myCtrl"&gt;</span></span><br><span class="line"><span class="regexp">&#123;&#123; firstName + " " + lastName &#125;&#125;</span></span><br><span class="line"><span class="regexp">&lt;/</span>div&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line"><span class="keyword">var</span> app = angular.module(<span class="string">"myApp"</span>, []);</span><br><span class="line"></span><br><span class="line">app.controller(<span class="string">"myCtrl"</span>, <span class="function"><span class="keyword">function</span>(<span class="params">$scope</span>) </span>&#123;</span><br><span class="line">    $scope.firstName = <span class="string">"John"</span>;</span><br><span class="line">    $scope.lastName = <span class="string">"Doe"</span>;</span><br><span class="line">&#125;);</span><br><span class="line">&lt;<span class="regexp">/script&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;/</span>body&gt;</span><br><span class="line">&lt;<span class="regexp">/html&gt; </span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">###模块定义应放置在何处？</span></span><br><span class="line"><span class="regexp">对于 HTML 应用程序，通常建议把所有的脚本都放置在 &lt;body&gt; 元素的最底部。</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">这会提高网页加载速度，因为 HTML 加载不受制于脚本加载。</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">在上面的多个 AngularJS 实例中，您将看到 AngularJS 库是在文档的 &lt;head&gt; 区域被加载。</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">在上面的实例中，AngularJS 在 &lt;head&gt; 元素中被加载，因为对 angular.module 的调用只能在库加载完成后才能进行。</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">另一个解决方案是在 &lt;body&gt; 元素中加载 AngularJS 库，但是必须放置在您的 AngularJS 脚本前面</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">```javascript</span></span><br><span class="line"><span class="regexp"> &lt;!DOCTYPE html&gt;</span></span><br><span class="line"><span class="regexp">&lt;html&gt;</span></span><br><span class="line"><span class="regexp">&lt;body&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;div ng-app="myApp" ng-controller="myCtrl"&gt;</span></span><br><span class="line"><span class="regexp">&#123;&#123; firstName + " " + lastName &#125;&#125;</span></span><br><span class="line"><span class="regexp">&lt;/</span>div&gt;</span><br><span class="line"></span><br><span class="line">&lt;script src=<span class="string">"//www.w3cschool.cc/try/angularjs/1.2.5/angular.min.js"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line"><span class="keyword">var</span> app = angular.module(<span class="string">"myApp"</span>, []);</span><br><span class="line"></span><br><span class="line">app.controller(<span class="string">"myCtrl"</span>, <span class="function"><span class="keyword">function</span>(<span class="params">$scope</span>) </span>&#123;</span><br><span class="line">    $scope.firstName = <span class="string">"John"</span>;</span><br><span class="line">    $scope.lastName = <span class="string">"Doe"</span>;</span><br><span class="line">&#125;);</span><br><span class="line">&lt;<span class="regexp">/script&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;/</span>body&gt;</span><br><span class="line">&lt;<span class="regexp">/html&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>###AngularJS 应用程序文件<br>现在您已经知道模块是什么以及它们是如何工作的，现在您可以尝试创建您自己的应用程序文件。</p>
+<p>您的应用程序至少应该有一个模块文件，一个控制器文件。</p>
+<p>首先，创建模块文件 “myApp.js”：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> app = angular.module(<span class="string">"myApp"</span>, []);</span><br></pre></td></tr></table></figure>
+
+<p>然后，创建控制器文件。本实例中是 “myCtrl.js”：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">app.controller(<span class="string">"myCtrl"</span>, <span class="function"><span class="keyword">function</span>(<span class="params">$scope</span>) </span>&#123;</span><br><span class="line">    $scope.firstName = <span class="string">"John"</span>;</span><br><span class="line">    $scope.lastName = <span class="string">"Doe"</span>;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>最后，编辑您的 HTML 页面：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line"></span><br><span class="line">&lt;div ng-app=<span class="string">"myApp"</span> ng-controller=<span class="string">"myCtrl"</span>&gt;</span><br><span class="line">&#123;&#123; firstName + <span class="string">" "</span> + lastName &#125;&#125;</span><br><span class="line">&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;script src="/</span><span class="regexp">/www.w3cschool.cc/</span><span class="keyword">try</span>/angularjs/<span class="number">1.2</span><span class="number">.5</span>/angular.min.js<span class="string">"&gt;&lt;/script&gt;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&lt;script src="</span>myApp.js<span class="string">"&gt;&lt;/script&gt;</span></span><br><span class="line"><span class="string">&lt;script src="</span>myCtrl.js<span class="string">"&gt;&lt;/script&gt;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&lt;/body&gt;</span></span><br><span class="line"><span class="string">&lt;/html&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>##HTML 表单</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">""</span> ng-controller=<span class="string">"formController"</span>&gt;</span><br><span class="line">  &lt;form novalidate&gt;</span><br><span class="line">    First Name:<span class="xml"><span class="tag">&lt;<span class="name">br</span>&gt;</span></span></span><br><span class="line">    &lt;input type="text" ng-model="user.firstName"&gt;&lt;br&gt;</span><br><span class="line">    Last Name:&lt;br&gt;</span><br><span class="line">    &lt;input type="text" ng-model="user.lastName"&gt;</span><br><span class="line">    &lt;br&gt;&lt;br&gt;</span><br><span class="line">    &lt;button ng-click="reset()"&gt;RESET&lt;/button&gt;</span><br><span class="line">  &lt;/form&gt;</span><br><span class="line">  &lt;p&gt;form = &#123;&#123;user&#125;&#125;&lt;/p&gt;</span><br><span class="line">  &lt;p&gt;master = &#123;&#123;master&#125;&#125;&lt;/p&gt;</span><br><span class="line">&lt;/div&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">function formController ($scope) &#123;</span><br><span class="line">    $scope.master = &#123;firstName: "John", lastName: "Doe"&#125;;</span><br><span class="line">    $scope.reset = function() &#123;</span><br><span class="line">        $scope.user = angular.copy($scope.master);</span><br><span class="line">    &#125;;</span><br><span class="line">    $scope.reset();</span><br><span class="line">&#125;;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>HTML 属性 novalidate 用于禁用浏览器的默认验证</strong></p>
+<p>##AngularJS 输入验证<br>AngularJS 表单和控件可以提供验证功能，并对用户输入的非法数据进行警告。</p>
+<p>**     客户端的验证不能确保用户输入数据的安全，所以服务端的数据验证也是必须的。**</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"> &lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line"></span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;h2&gt;Validation Example&lt;/h2&gt;</span><br><span class="line"></span><br><span class="line">&lt;form  ng-app=<span class="string">""</span>  ng-controller=<span class="string">"validateCtrl"</span></span><br><span class="line">name=<span class="string">"myForm"</span> novalidate&gt;</span><br><span class="line"></span><br><span class="line">&lt;p&gt;Username:&lt;br&gt;</span><br><span class="line">  &lt;input type=<span class="string">"text"</span> name=<span class="string">"user"</span> ng-model=<span class="string">"user"</span> required&gt;</span><br><span class="line">  &lt;span style=<span class="string">"color:red"</span> ng-show=<span class="string">"myForm.user.$dirty &amp;&amp; myForm.user.$invalid"</span>&gt;</span><br><span class="line">  &lt;span ng-show="myForm.user.$error.required"&gt;Username is required.&lt;/span&gt;</span><br><span class="line">  &lt;/span&gt;</span><br><span class="line">&lt;/p&gt;</span><br><span class="line"></span><br><span class="line">&lt;p&gt;Email:&lt;br&gt;</span><br><span class="line">  &lt;input type=<span class="string">"email"</span> name=<span class="string">"email"</span> ng-model=<span class="string">"email"</span> required&gt;</span><br><span class="line">  &lt;span style=<span class="string">"color:red"</span> ng-show=<span class="string">"myForm.email.$dirty &amp;&amp; myForm.email.$invalid"</span>&gt;</span><br><span class="line">  &lt;span ng-show="myForm.email.$error.required"&gt;Email is required.&lt;/span&gt;</span><br><span class="line">  &lt;span ng-show="myForm.email.$error.email"&gt;Invalid email address.&lt;/span&gt;</span><br><span class="line">  &lt;/span&gt;</span><br><span class="line">&lt;/p&gt;</span><br><span class="line"></span><br><span class="line">&lt;p&gt;</span><br><span class="line">  &lt;input type=<span class="string">"submit"</span></span><br><span class="line">  ng-disabled=<span class="string">"myForm.user.$dirty &amp;&amp; myForm.user.$invalid ||</span></span><br><span class="line"><span class="string">  myForm.email.$dirty &amp;&amp; myForm.email.$invalid"</span>&gt;</span><br><span class="line">&lt;/p&gt;</span><br><span class="line"></span><br><span class="line">&lt;/form&gt;</span><br><span class="line"></span><br><span class="line">&lt;script src="//apps.bdimg.com/libs/angular.js/1.2.15/angular.min.js"&gt;&lt;/script&gt;</span><br><span class="line">&lt;script&gt;</span><br><span class="line"><span class="function">function <span class="title">validateCtrl</span><span class="params">($scope)</span> </span>&#123;</span><br><span class="line">    $scope.user = <span class="string">'John Doe'</span>;</span><br><span class="line">    $scope.email = <span class="string">'john.doe@gmail.com'</span>;</span><br><span class="line">&#125;</span><br><span class="line">&lt;/script&gt;</span><br><span class="line"></span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>##AngularJS Bootstrap</p>
+<p>AngularJS 的首选样式表是 Twitter Bootstrap， Twitter Bootstrap 是目前最受欢迎的前端框架。</p>
+<p>###Bootstrap</p>
+<p>你可以在你的 AngularJS 应用中加入 Twitter Bootstrap，你可以在你的 <head><meta name="generator" content="Hexo 3.9.0">元素中添加如下代码:</head></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;link rel=<span class="string">"stylesheet"</span> href=<span class="string">"//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"</span>&gt;</span><br></pre></td></tr></table></figure>
+
+<p>如果站点在国内，建议使用百度静态资源库的Bootstrap，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;link rel=<span class="string">"stylesheet"</span> href=<span class="string">"//apps.bdimg.com/libs/bootstrap/3.2.0/css/bootstrap.min.css"</span>&gt;</span><br></pre></td></tr></table></figure>
+
+<p>以下是一个完整的 HTML 实例, 使用了 AngularJS 指令和 Bootstrap 类。</p>
+<p>HTML 代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">&lt;html ang-app=<span class="string">""</span>&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">&lt;link rel=<span class="string">"stylesheet"</span> href=<span class="string">"http://apps.bdimg.com/libs/bootstrap/3.2.0/css/bootstrap.min.css"</span>&gt;</span><br><span class="line">&lt;<span class="regexp">/head&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;body ng-controller="userController"&gt;</span></span><br><span class="line"><span class="regexp">&lt;div class="container"&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;h3&gt;Users&lt;/</span>h3&gt;</span><br><span class="line"></span><br><span class="line">&lt;table <span class="class"><span class="keyword">class</span></span>=<span class="string">"table table-striped"</span>&gt;</span><br><span class="line">  &lt;thead&gt;<span class="xml"><span class="tag">&lt;<span class="name">tr</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">th</span>&gt;</span>Edit<span class="tag">&lt;/<span class="name">th</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">th</span>&gt;</span>First Name<span class="tag">&lt;/<span class="name">th</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">th</span>&gt;</span>Last Name<span class="tag">&lt;/<span class="name">th</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">tr</span>&gt;</span></span><span class="xml"><span class="tag">&lt;/<span class="name">thead</span>&gt;</span></span></span><br><span class="line">  &lt;tbody&gt;<span class="xml"><span class="tag">&lt;<span class="name">tr</span> <span class="attr">ng-repeat</span>=<span class="string">"user in users"</span>&gt;</span></span></span><br><span class="line">    &lt;td&gt;</span><br><span class="line">      &lt;button class="btn" ng-click="editUser(user.id)"&gt;</span><br><span class="line">      &lt;span class="glyphicon glyphicon-pencil"&gt;&lt;/span&gt;&amp;nbsp;&amp;nbsp;Edit</span><br><span class="line">      &lt;/button&gt;</span><br><span class="line"><span class="xml">    <span class="tag">&lt;/<span class="name">td</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">td</span>&gt;</span>&#123;&#123; user.fName &#125;&#125;<span class="tag">&lt;/<span class="name">td</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">td</span>&gt;</span>&#123;&#123; user.lName &#125;&#125;<span class="tag">&lt;/<span class="name">td</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">tr</span>&gt;</span></span><span class="xml"><span class="tag">&lt;/<span class="name">tbody</span>&gt;</span></span></span><br><span class="line">&lt;<span class="regexp">/table&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;hr&gt;</span></span><br><span class="line"><span class="regexp">&lt;button class="btn btn-success" ng-click="editUser('new')"&gt;</span></span><br><span class="line"><span class="regexp">  &lt;span class="glyphicon glyphicon-user"&gt;&lt;/</span>span&gt; Create New User</span><br><span class="line">&lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp">&lt;hr&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;h3 ng-show="edit"&gt;Create New User:&lt;/</span>h3&gt;</span><br><span class="line">&lt;h3 ng-hide=<span class="string">"edit"</span>&gt;Edit User:<span class="xml"><span class="tag">&lt;/<span class="name">h3</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line">&lt;form <span class="class"><span class="keyword">class</span></span>=<span class="string">"form-horizontal"</span>&gt;</span><br><span class="line">&lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"form-group"</span>&gt;</span><br><span class="line">  &lt;label <span class="class"><span class="keyword">class</span></span>=<span class="string">"col-sm-2 control-label"</span>&gt;First Name:<span class="xml"><span class="tag">&lt;/<span class="name">label</span>&gt;</span></span></span><br><span class="line">  &lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"col-sm-10"</span>&gt;</span><br><span class="line">    &lt;input type=<span class="string">"text"</span> ng-model=<span class="string">"fName"</span> ng-disabled=<span class="string">"!edit"</span> placeholder=<span class="string">"First Name"</span>&gt;</span><br><span class="line">  &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>div&gt;</span><br><span class="line">&lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"form-group"</span>&gt;</span><br><span class="line">  &lt;label <span class="class"><span class="keyword">class</span></span>=<span class="string">"col-sm-2 control-label"</span>&gt;Last Name:<span class="xml"><span class="tag">&lt;/<span class="name">label</span>&gt;</span></span></span><br><span class="line">  &lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"col-sm-10"</span>&gt;</span><br><span class="line">    &lt;input type=<span class="string">"text"</span> ng-model=<span class="string">"lName"</span> ng-disabled=<span class="string">"!edit"</span> placeholder=<span class="string">"Last Name"</span>&gt;</span><br><span class="line">  &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>div&gt;</span><br><span class="line">&lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"form-group"</span>&gt;</span><br><span class="line">  &lt;label <span class="class"><span class="keyword">class</span></span>=<span class="string">"col-sm-2 control-label"</span>&gt;Password:<span class="xml"><span class="tag">&lt;/<span class="name">label</span>&gt;</span></span></span><br><span class="line">  &lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"col-sm-10"</span>&gt;</span><br><span class="line">    &lt;input type=<span class="string">"password"</span> ng-model=<span class="string">"passw1"</span> placeholder=<span class="string">"Password"</span>&gt;</span><br><span class="line">  &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>div&gt;</span><br><span class="line">&lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"form-group"</span>&gt;</span><br><span class="line">  &lt;label <span class="class"><span class="keyword">class</span></span>=<span class="string">"col-sm-2 control-label"</span>&gt;Repeat:<span class="xml"><span class="tag">&lt;/<span class="name">label</span>&gt;</span></span></span><br><span class="line">  &lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"col-sm-10"</span>&gt;</span><br><span class="line">    &lt;input type=<span class="string">"password"</span> ng-model=<span class="string">"passw2"</span> placeholder=<span class="string">"Repeat Password"</span>&gt;</span><br><span class="line">  &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>div&gt;</span><br><span class="line">&lt;<span class="regexp">/form&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;hr&gt;</span></span><br><span class="line"><span class="regexp">&lt;button class="btn btn-success" ng-disabled="error || incomplete"&gt;</span></span><br><span class="line"><span class="regexp">  &lt;span class="glyphicon glyphicon-save"&gt;&lt;/</span>span&gt; Save Changes</span><br><span class="line">&lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>div&gt;</span><br><span class="line"></span><br><span class="line">&lt;script src = <span class="string">"http://apps.bdimg.com/libs/angular.js/1.2.15/angular.min.js"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line">&lt;script src = <span class="string">"myUsers.js"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line">&lt;button ng-click=<span class="string">"clear()"</span>&gt;清除&lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp">&lt;/</span>p&gt;</span><br><span class="line"></span><br><span class="line">&lt;p&gt;剩下的字符数：&lt;span ng-bind=<span class="string">"left()"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><span class="xml"><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line">&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">&lt;script src="myTodoApp.js"&gt;&lt;/</span>script&gt;</span><br><span class="line">&lt;script src=<span class="string">"myTodoCtrl.js"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+<p>应用程序文件 “myTodoApp.js”：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> app = angular.module(<span class="string">"myTodoApp"</span>, []);</span><br></pre></td></tr></table></figure>
+
+<p>控制器文件 “myTodoCtrl.js”：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">app.controller(<span class="string">"myTodoCtrl"</span>, <span class="function"><span class="keyword">function</span>(<span class="params">$scope</span>) </span>&#123;</span><br><span class="line">    $scope.message = <span class="string">""</span>;</span><br><span class="line">    $scope.left  = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;<span class="keyword">return</span> <span class="number">100</span> - $scope.message.length;&#125;;</span><br><span class="line">    $scope.clear = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;$scope.message=<span class="string">""</span>;&#125;;</span><br><span class="line">    $scope.save  = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;$scope.message=<span class="string">""</span>;&#125;;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>HTML 页面中的一个 <div>，指向 ng-app=”myTodoApp” 和 ng-controller=”myTodoCtrl”：</div></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;div ng-app=<span class="string">"myTodoApp"</span> ng-controller=<span class="string">"myTodoCtrl"</span>&gt;</span><br></pre></td></tr></table></figure>
+
+<p>一个 ng-model 指令，绑定一个 textarea 到控制器变量 message：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;textarea ng-model=<span class="string">"message"</span> cols=<span class="string">"40"</span> rows=<span class="string">"10"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">textarea</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+<p>两个 ng-click 事件，调用控制器函数 clear() 和 save()：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;button ng-click=<span class="string">"save()"</span>&gt;保存&lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp">&lt;button ng-click="clear()"&gt;清除&lt;/</span>button&gt;</span><br></pre></td></tr></table></figure>
+
+<p>一个 ng-bind 指令，绑定控制器函数 left() 到一个 <span>，字符会向左对齐显示：</span></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">剩下的字符数：&lt;span ng-bind=<span class="string">"left()"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">span</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+<p>两个应用程序库被添加到 HTML 页面：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;script src=<span class="string">"myTodoApp.js"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line">&lt;script src=<span class="string">"myTodoCtrl.js"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+<p><strong><em><a href="http://www.w3cschool.cc/angularjs/angularjs-reference.html" target="_blank" rel="noopener">更多AngularJS参考手册</a></em></strong></p>
+
+
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">###Bootstrap 类解析</span><br><span class="line"></span><br><span class="line">```javascript</span><br><span class="line">元素        Bootstrap 类       定义</span><br><span class="line">&lt;div&gt;       container           内容容器</span><br><span class="line">&lt;table&gt;   table               表格</span><br><span class="line">&lt;table&gt;   table-striped       带条纹背景的表格</span><br><span class="line">&lt;button&gt;  btn               按钮</span><br><span class="line">&lt;button&gt;  btn-success       成功按钮</span><br><span class="line">&lt;span&gt;      glyphicon           字形图标</span><br><span class="line">&lt;span&gt;      glyphicon-pencil  铅笔图标</span><br><span class="line">&lt;span&gt;      glyphicon-user    用户图标</span><br><span class="line">&lt;span&gt;      glyphicon-save    保存图标</span><br><span class="line">&lt;form&gt;      form-horizontal   水平表格</span><br><span class="line">&lt;div&gt;     form-group        表单组</span><br><span class="line">&lt;label&gt;   control-label     控制器标签</span><br><span class="line">&lt;label&gt;   col-sm-2          跨越 2 列</span><br><span class="line">&lt;div&gt;     col-sm-10         跨越 10 列</span><br></pre></td></tr></table></figure>
+
+<p>###JavaScript 代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">userController</span>(<span class="params">$scope</span>) </span>&#123;</span><br><span class="line">$scope.fName = <span class="string">''</span>;</span><br><span class="line">$scope.lName = <span class="string">''</span>;</span><br><span class="line">$scope.passw1 = <span class="string">''</span>;</span><br><span class="line">$scope.passw2 = <span class="string">''</span>;</span><br><span class="line">$scope.users = [</span><br><span class="line">&#123;<span class="attr">id</span>:<span class="number">1</span>, <span class="attr">fName</span>:<span class="string">'Hege'</span>,  <span class="attr">lName</span>:<span class="string">"Pege"</span> &#125;,</span><br><span class="line">&#123;<span class="attr">id</span>:<span class="number">2</span>, <span class="attr">fName</span>:<span class="string">'Kim'</span>,   <span class="attr">lName</span>:<span class="string">"Pim"</span> &#125;,</span><br><span class="line">&#123;<span class="attr">id</span>:<span class="number">3</span>, <span class="attr">fName</span>:<span class="string">'Sal'</span>,   <span class="attr">lName</span>:<span class="string">"Smith"</span> &#125;,</span><br><span class="line">&#123;<span class="attr">id</span>:<span class="number">4</span>, <span class="attr">fName</span>:<span class="string">'Jack'</span>,  <span class="attr">lName</span>:<span class="string">"Jones"</span> &#125;,</span><br><span class="line">&#123;<span class="attr">id</span>:<span class="number">5</span>, <span class="attr">fName</span>:<span class="string">'John'</span>,  <span class="attr">lName</span>:<span class="string">"Doe"</span> &#125;,</span><br><span class="line">&#123;<span class="attr">id</span>:<span class="number">6</span>, <span class="attr">fName</span>:<span class="string">'Peter'</span>, <span class="attr">lName</span>:<span class="string">"Pan"</span> &#125;</span><br><span class="line">];</span><br><span class="line">$scope.edit = <span class="literal">true</span>;</span><br><span class="line">$scope.error = <span class="literal">false</span>;</span><br><span class="line">$scope.incomplete = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">$scope.editUser = <span class="function"><span class="keyword">function</span>(<span class="params">id</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (id == <span class="string">'new'</span>) &#123;</span><br><span class="line">    $scope.edit = <span class="literal">true</span>;</span><br><span class="line">    $scope.incomplete = <span class="literal">true</span>;</span><br><span class="line">    $scope.fName = <span class="string">''</span>;</span><br><span class="line">    $scope.lName = <span class="string">''</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    $scope.edit = <span class="literal">false</span>;</span><br><span class="line">    $scope.fName = $scope.users[id<span class="number">-1</span>].fName;</span><br><span class="line">    $scope.lName = $scope.users[id<span class="number">-1</span>].lName;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">$scope.$watch(<span class="string">'passw1'</span>,<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;$scope.test();&#125;);</span><br><span class="line">$scope.$watch(<span class="string">'passw2'</span>,<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;$scope.test();&#125;);</span><br><span class="line">$scope.$watch(<span class="string">'fName'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;$scope.test();&#125;);</span><br><span class="line">$scope.$watch(<span class="string">'lName'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;$scope.test();&#125;);</span><br><span class="line"></span><br><span class="line">$scope.test = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> ($scope.passw1 !== $scope.passw2) &#123;</span><br><span class="line">    $scope.error = <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    $scope.error = <span class="literal">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  $scope.incomplete = <span class="literal">false</span>;</span><br><span class="line">  <span class="keyword">if</span> ($scope.edit &amp;&amp; (!$scope.fName.length ||</span><br><span class="line">  !$scope.lName.length ||</span><br><span class="line">  !$scope.passw1.length || !$scope.passw2.length)) &#123;</span><br><span class="line">       $scope.incomplete = <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>###JavaScript 代码解析</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Scope 属性     用途</span><br><span class="line">$scope.fName  模型变量 (用户名)</span><br><span class="line">$scope.lName  模型变量 (用户姓)</span><br><span class="line">$scope.passw1   模型变量 (用户密码 <span class="number">1</span>)</span><br><span class="line">$scope.passw2   模型变量 (用户密码 <span class="number">2</span>)</span><br><span class="line">$scope.users  模型变量 (用户的数组)</span><br><span class="line">$scope.edit   当用户点击创建用户时设置为<span class="literal">true</span>。</span><br><span class="line">$scope.error  如果 passw1 不等于 passw2 设置为 <span class="literal">true</span></span><br><span class="line">$scope.incomplete   如果每个字段都为空(length = <span class="number">0</span>)设置为 <span class="literal">true</span></span><br><span class="line">$scope.editUser   设置模型变量</span><br><span class="line">$scope.watch  监控模型变量</span><br><span class="line">$scope.test   验证模型变量的错误和完整性</span><br></pre></td></tr></table></figure>
+
+<p>##AngularJS Include（包含）<br>使用 AngularJS, 你可以在 HTML 中包含 HTML 文件。</p>
+<p>###服务端包含</p>
+<p>大部分web服务器支持服务端脚本的包含 (SSI：Server Side Includes)。</p>
+<p>使用 SSI, 你可以在HTML页面发送至浏览器前包含 HTML。<br>PHP 实例</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> <span class="keyword">require</span>(<span class="string">"navigation.php"</span>); <span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>###客户端包含</p>
+<p>客户端在 HTML 中使用 JavaScript 有多种方式可以包含 HTML 文件。</p>
+<p>通常我们使用 http 请求 (AJAX) 从服务端获取数据，返回的数据我们可以通过 使用 innerHTML 写入到 HTML 元素中。 </p>
+<p>###AngularJS 包含</p>
+<p>使用 AngularJS, 你可以使用 ng-include 指令来包含 HTML 内容:<br>实例</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;body&gt;</span><br><span class="line"></span><br><span class="line">&lt;div <span class="class"><span class="keyword">class</span></span>=<span class="string">"container"</span>&gt;</span><br><span class="line">  &lt;div ng-include=<span class="string">"'myUsers_List.htm'"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">  &lt;div ng-include=<span class="string">"'myUsers_Form.htm'"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">&lt;<span class="regexp">/div&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>##AngularJS 应用程序实例</p>
+<p>###Html文件</p>
+<pre><code class="javascript"> &lt;div ng-app=<span class="string">"myTodoApp"</span> ng-controller=<span class="string">"myTodoCtrl"</span>&gt;
+
+&lt;h2&gt;我的笔记&lt;<span class="regexp">/h2&gt;</span>
+<span class="regexp"></span>
+<span class="regexp">&lt;p&gt;&lt;textarea ng-model="message" cols="40" rows="10"&gt;&lt;/</span>textarea&gt;<span class="xml"><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span>
+
+&lt;p&gt;
+&lt;button ng-click=<span class="string">"save()"</span>&gt;保存&lt;<span class="regexp">/button&gt;</span></code></pre>
+
+            
+
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">标签</span><br/>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/AngularJS/">AngularJS</a> <a class="tag tag--primary tag--small t-link" href="/tags/前端/">前端</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/02/15/适配器模式/"
+                    data-tooltip="适配器模式"
+                    aria-label="上一篇: 适配器模式"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2014/11/16/单例模式/"
+                    data-tooltip="单例模式"
+                    aria-label="下一篇: 单例模式"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2014/12/06/Angularjs/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2014/12/06/Angularjs/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2014/12/06/Angularjs/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 zhangliukun. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/02/15/适配器模式/"
+                    data-tooltip="适配器模式"
+                    aria-label="上一篇: 适配器模式"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2014/11/16/单例模式/"
+                    data-tooltip="单例模式"
+                    aria-label="下一篇: 单例模式"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2014/12/06/Angularjs/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2014/12/06/Angularjs/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2014/12/06/Angularjs/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2014/12/06/Angularjs/"
+                        aria-label="分享到 Facebook"
+                    >
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>分享到 Facebook</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2014/12/06/Angularjs/"
+                        aria-label="分享到 Weibo"
+                    >
+                        <i class="fab fa-weibo" aria-hidden="true"></i><span>分享到 Weibo</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2014/12/06/Angularjs/"
+                        aria-label="分享到 Qzone"
+                    >
+                        <i class="fa fa-star" aria-hidden="true"></i><span>分享到 Qzone</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+            <h4 id="about-card-name">zhangliukun</h4>
+        
+            <div id="about-card-bio"><p>天蝎座？</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>学生</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br/>
+                Hangzhou
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-opoomiy5imbn3xwjxebdjebgsd1hwgcbosrvoydvgbs5mjvuui1wxks1q9cr.min.js"></script>
+<!--SCRIPTS END-->
+
+
+    
+
+
+
+
+    </body>
+</html>

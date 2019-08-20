@@ -1,0 +1,639 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="六锟小站">
+    <title>android如音符的震动 - 六锟小站</title>
+    <meta name="author" content="zhangliukun">
+    
+    
+        <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
+    
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"概要近来在做一个全屏录音的炫酷view时，感觉开始录音时太平淡，所以准备加入一个震动的效果，去网上搜了一下，例子还是挺多，但自己真正开始做的时候发现了许多细节方面的网上的文章都没有说清楚，很多人也可能只是复制粘贴，没有自己去尝试过，在经过一系列探索以后，把使用的心得记录一下。\n官网介绍首先我们来看看官网对于震动的介绍Vibrator.\n\n\n类概述这个类是操作设备上的震动的一个类。如果你的进程退出，任何你启动的震动都会停止。如果你想要获得一个系统的震动实例，可以调用getSystemService这个函数，使用VIBRATOR_SERVICE作为参数。\n方法概述1234567891011121314151617abstract void\tcancel() //关闭震动Turn the vibrator off.abstract boolean\thasVibrator()  //检查设备是否支持震动Check whether the hardware has a vibrator.void\tvibrate(long[] pattern, int repeat, AudioAttributes attributes) //一下均是通过参数来构建震动Vibrate with a given pattern.void\tvibrate(long[] pattern, int repeat) //震动参数，从哪震动参数数组的下标开始重复震动Vibrate with a given pattern.void\tvibrate(long milliseconds)\t//震动一段时间Vibrate constantly for the specified period of time.void\tvibrate(long milliseconds, AudioAttributes attributes) Vibrate constantly for the specified period of time.\n\n具体的意思在官网中的函数解释很明确了,这里挑一段分析一下：\n1234567891011121314public void vibrate (long[] pattern, int repeat)\tAdded in API level 1\tVibrate with a given pattern.\tPass in an array of ints that are the durations for which to turn on or off the vibrator in milliseconds. The first value indicates the number of milliseconds to wait before turning the vibrator on. The next value indicates the number of milliseconds for which to keep the vibrator on before turning it off. Subsequent values alternate between durations in milliseconds to turn the vibrator off or to turn the vibrator on.\tTo cause the pattern to repeat, pass the index into the pattern array at which to start the repeat, or -1 to disable repeating.\tThis method requires the caller to hold the permission VIBRATE.\tParameters\tpattern\tan array of longs of times for which to turn the vibrator on or off.\trepeat\tthe index into pattern at which to repeat, or -1 if you don't want to repeat.\n\n这里的long[] pattern说明这是一个数组，其中的数字个数可以写很多，比如说我定义了一个long[] pattern = {100,200,100,500}。这里我定义了有四个数字的数组，从官网解释中可知：\n\n第一个参数表明手机震动电机关闭的毫秒数\n\n第二个参数表明手机震动点击开启的毫秒数\n\n后面的参数按照第一第二个参数依次类推，即第三个是关，第四个是开\n\nrepeat参数一开始很容易让人误以为是重复的次数，其实这是不对的，从解释中我们可以看到官网是这样解释的这个repeat参数是在pattern数组中的一个下标索引，也就是说如果我定义repeat为2的话，以后就一直从pattern[3]开始到最后进行循环播放，就会一直进行100,500,100,500,100,500·····，\n\n\n所以我要仔细看官方文档具体怎么解释比较好，既然我们掌握了震动的规律，这样我们就可以让震动变得如音符那样具有节奏感了。这时，我们可以找一首曲子的乐谱过来，可以看到五线谱中都有节拍，每个节拍都可以换算成具体的毫秒数，具体的涉及乐理的知识就不在这里赘述了，比如我们需要定义一首曲子的话就可以在规则数组中定义乐曲了哈哈。\n代码实现单独使用震动还是很简单的，也不需要获取什么NotificationManager等，直接去系统服务获取震动的实例就行，下面就贴一下简单的实现代码。\n12345678910111213/**     * 添加录音震动     * VIBRATE P1: the number of milliseconds to wait before turning the vibrator on     *         P2: the number of milliseconds for which to keep the vibrator on before turning it off     *         P+: alternate between durations in milliseconds to turn the vibrator off or to turn the vibrator on     *     *         To cause the pattern to repeat, pass the index into the pattern array at which to start the repeat, or -1 to disable repeating     */    private void sendYibrateNotification()&#123;        long[] pattern = &#123;0,500&#125;;        Vibrator vibrate = (Vibrator) mContext.getSystemService(Service.VIBRATOR_SERVICE);        vibrate.vibrate(pattern,-1);    &#125;\n\n这边我实现的效果就是不重复的简单震动500毫秒最后不要忘了加入相关权限\n1&lt;uses-permission android:name=\"android.permission.VIBRATE\" /&gt;\n\n总结android的很多设备都是很开放的，开发者可以自己去定义自己的想要达到的效果，这也是android系统的迷人之处。最后附上一张刚做完的自定义的全屏录音控件，因为在模拟器中截的屏且用的是台式机，没有声音输入设备，所以声音没法录入，录音时的音波条一直是平的，实习效果很炫酷，其中的难点就是在使用时要针对于不同的view的拦截事件进行处理，比如在listview中。如果喜欢这样的效果欢迎索要。\n","dateCreated":"2016-01-05T18:44:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2016-01-05T18:44:00+08:00","description":"概要近来在做一个全屏录音的炫酷view时，感觉开始录音时太平淡，所以准备加入一个震动的效果，去网上搜了一下，例子还是挺多，但自己真正开始做的时候发现了许多细节方面的网上的文章都没有说清楚，很多人也可能只是复制粘贴，没有自己去尝试过，在经过一系列探索以后，把使用的心得记录一下。\n官网介绍首先我们来看看官网对于震动的介绍Vibrator.","headline":"android如音符的震动","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2016/01/05/android如音符般震动/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2016/01/05/android如音符般震动/","keywords":"android, vibrate"}</script>
+    <meta name="description" content="android震动相关">
+<meta name="keywords" content="android,vibrate">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="android如音符的震动">
+<meta property="og:url" content="http://zhangliukun.cn/2016/01/05/android如音符般震动/index.html">
+<meta property="og:site_name" content="六锟小站">
+<meta property="og:description" content="android震动相关">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:image" content="http://img.blog.csdn.net/20151118201520382">
+<meta property="og:updated_time" content="2019-08-20T12:14:42.842Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="android如音符的震动">
+<meta name="twitter:description" content="android震动相关">
+<meta name="twitter:image" content="http://img.blog.csdn.net/20151118201520382">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="http://zhangliukun.cn/assets/images/avatar.jpg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-4iwpnc93lrhj5xhp85jwjyjr2detotwl3e6te5tkbp5mthm9fmtbqzvsi9tc.min.css">
+    <!--STYLES END-->
+    
+
+    
+
+    
+        
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a
+            class="header-title-link"
+            href="/ "
+            aria-label=""
+        >
+            六锟小站
+        </a>
+    </div>
+    
+        
+            <a
+                class="header-right-picture "
+                href="#about"
+                aria-label="打开链接: /#about"
+            >
+        
+        
+            <img class="header-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a
+                    href="/#about"
+                    aria-label="阅读有关作者的更多信息"
+                >
+                    <img class="sidebar-profile-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+                </a>
+                <h4 class="sidebar-profile-name">zhangliukun</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>天蝎座？</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="首页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">首页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-tags"
+                            
+                            title="标签"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">标签</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-archives"
+                            
+                            title="归档"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">归档</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="#about"
+                            
+                            title="关于"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">关于</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/zhangliukun" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.facebook.com/zhang.zale" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fab fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/assets/love/index.html"
+                            title="Love"
+                        >
+                    
+                        <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Love</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/mailto"
+                            title="邮箱"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">邮箱</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            android如音符的震动
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2016-01-05T18:44:00+08:00">
+	
+		    1月 05, 2016
+    	
+    </time>
+    
+        <span>发布在 </span>
+        
+    <a class="category-link" href="/categories/android/">android</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="概要"><a href="#概要" class="headerlink" title="概要"></a>概要</h2><p>近来在做一个全屏录音的炫酷view时，感觉开始录音时太平淡，所以准备加入一个震动的效果，去网上搜了一下，例子还是挺多，但自己真正开始做的时候发现了许多细节方面的网上的文章都没有说清楚，很多人也可能只是复制粘贴，没有自己去尝试过，在经过一系列探索以后，把使用的心得记录一下。</p>
+<h2 id="官网介绍"><a href="#官网介绍" class="headerlink" title="官网介绍"></a>官网介绍</h2><p>首先我们来看看官网对于震动的介绍<a href="http://developer.android.com/reference/android/os/Vibrator.html" target="_blank" rel="noopener">Vibrator</a>.</p>
+<a id="more"></a>
+
+<h2 id="类概述"><a href="#类概述" class="headerlink" title="类概述"></a>类概述</h2><p>这个类是操作设备上的震动的一个类。如果你的进程退出，任何你启动的震动都会停止。如果你想要获得一个系统的震动实例，可以调用<a href="http://developer.android.com/reference/android/content/Context.html#getSystemService(java.lang.Class<T>)" target="_blank" rel="noopener">getSystemService</a>这个函数，使用<a href="http://developer.android.com/reference/android/content/Context.html#VIBRATOR_SERVICE" target="_blank" rel="noopener">VIBRATOR_SERVICE</a>作为参数。</p>
+<h2 id="方法概述"><a href="#方法概述" class="headerlink" title="方法概述"></a>方法概述</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">abstract</span> <span class="keyword">void</span>	<span class="title">cancel</span><span class="params">()</span> <span class="comment">//关闭震动</span></span></span><br><span class="line"><span class="function">Turn the vibrator off.</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="keyword">abstract</span> <span class="keyword">boolean</span>	<span class="title">hasVibrator</span><span class="params">()</span>  <span class="comment">//检查设备是否支持震动</span></span></span><br><span class="line"><span class="function">Check whether the hardware has a vibrator.</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="keyword">void</span>	<span class="title">vibrate</span><span class="params">(<span class="keyword">long</span>[] pattern, <span class="keyword">int</span> repeat, AudioAttributes attributes)</span> <span class="comment">//一下均是通过参数来构建震动</span></span></span><br><span class="line"><span class="function">Vibrate with a given pattern.</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="keyword">void</span>	<span class="title">vibrate</span><span class="params">(<span class="keyword">long</span>[] pattern, <span class="keyword">int</span> repeat)</span> <span class="comment">//震动参数，从哪震动参数数组的下标开始重复震动</span></span></span><br><span class="line"><span class="function">Vibrate with a given pattern.</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="keyword">void</span>	<span class="title">vibrate</span><span class="params">(<span class="keyword">long</span> milliseconds)</span>	<span class="comment">//震动一段时间</span></span></span><br><span class="line"><span class="function">Vibrate constantly <span class="keyword">for</span> the specified period of time.</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="keyword">void</span>	<span class="title">vibrate</span><span class="params">(<span class="keyword">long</span> milliseconds, AudioAttributes attributes)</span> </span></span><br><span class="line"><span class="function">Vibrate constantly <span class="keyword">for</span> the specified period of time.</span></span><br></pre></td></tr></table></figure>
+
+<p>具体的意思在官网中的函数解释很明确了,这里挑一段分析一下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">vibrate</span> <span class="params">(<span class="keyword">long</span>[] pattern, <span class="keyword">int</span> repeat)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">	Added in API level 1</span></span><br><span class="line"><span class="function">	Vibrate with a given pattern.</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">	Pass in an array of ints that are the durations <span class="keyword">for</span> which to turn on or off the vibrator in milliseconds. The first value indicates the number of milliseconds to wait before turning the vibrator on. The next value indicates the number of milliseconds <span class="keyword">for</span> which to keep the vibrator on before turning it off. Subsequent values alternate between durations in milliseconds to turn the vibrator off or to turn the vibrator on.</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">	To cause the pattern to repeat, pass the index into the pattern array at which to start the repeat, or -1 to disable repeating.</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">	This method <span class="keyword">requires</span> the caller to hold the permission VIBRATE.</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">	Parameters</span></span><br><span class="line"><span class="function">	pattern	an array of longs of times <span class="keyword">for</span> which to turn the vibrator on or off.</span></span><br><span class="line"><span class="function">	repeat	the index into pattern at which to repeat, or -1 <span class="keyword">if</span> you don't want to repeat.</span></span><br></pre></td></tr></table></figure>
+
+<p>这里的long[] pattern说明这是一个数组，其中的数字个数可以写很多，比如说我定义了一个long[] pattern = {100,200,100,500}。这里我定义了有四个数字的数组，从官网解释中可知：</p>
+<ul>
+<li><p>第一个参数表明手机震动电机关闭的毫秒数</p>
+</li>
+<li><p>第二个参数表明手机震动点击开启的毫秒数</p>
+</li>
+<li><p>后面的参数按照第一第二个参数依次类推，即第三个是关，第四个是开</p>
+</li>
+<li><p>repeat参数一开始很容易让人误以为是重复的次数，其实这是不对的，从解释中我们可以看到官网是这样解释的<strong>这个repeat参数是在pattern数组中的一个下标索引，也就是说如果我定义repeat为2的话，以后就一直从pattern[3]开始到最后进行循环播放，就会一直进行100,500,100,500,100,500·····</strong>，</p>
+</li>
+</ul>
+<p>所以我要仔细看官方文档具体怎么解释比较好，既然我们掌握了震动的规律，这样我们就可以让震动变得如音符那样具有节奏感了。这时，我们可以找一首曲子的乐谱过来，可以看到五线谱中都有节拍，每个节拍都可以换算成具体的毫秒数，具体的涉及乐理的知识就不在这里赘述了，比如我们需要定义一首曲子的话就可以在规则数组中定义乐曲了哈哈。</p>
+<h2 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h2><p>单独使用震动还是很简单的，也不需要获取什么NotificationManager等，直接去系统服务获取震动的实例就行，下面就贴一下简单的实现代码。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 添加录音震动</span></span><br><span class="line"><span class="comment">     * VIBRATE P1: the number of milliseconds to wait before turning the vibrator on</span></span><br><span class="line"><span class="comment">     *         P2: the number of milliseconds for which to keep the vibrator on before turning it off</span></span><br><span class="line"><span class="comment">     *         P+: alternate between durations in milliseconds to turn the vibrator off or to turn the vibrator on</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     *         To cause the pattern to repeat, pass the index into the pattern array at which to start the repeat, or -1 to disable repeating</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">sendYibrateNotification</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">long</span>[] pattern = &#123;<span class="number">0</span>,<span class="number">500</span>&#125;;</span><br><span class="line">        Vibrator vibrate = (Vibrator) mContext.getSystemService(Service.VIBRATOR_SERVICE);</span><br><span class="line">        vibrate.vibrate(pattern,-<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这边我实现的效果就是不重复的简单震动500毫秒<br>最后不要忘了加入相关权限</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">"android.permission.VIBRATE"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>android的很多设备都是很开放的，开发者可以自己去定义自己的想要达到的效果，这也是android系统的迷人之处。最后附上一张刚做完的自定义的全屏录音控件，因为在模拟器中截的屏且用的是台式机，没有声音输入设备，所以声音没法录入，录音时的音波条一直是平的，实习效果很炫酷，其中的难点就是在使用时要针对于不同的view的拦截事件进行处理，比如在listview中。如果喜欢这样的效果欢迎索要。<br><img src="http://img.blog.csdn.net/20151118201520382" alt="这里写图片描述"></p>
+
+            
+
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">标签</span><br/>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/android/">android</a> <a class="tag tag--primary tag--small t-link" href="/tags/vibrate/">vibrate</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2016/01/18/android-opencv环境搭建/"
+                    data-tooltip="android opencv 环境搭建"
+                    aria-label="上一篇: android opencv 环境搭建"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/12/27/vim配置小记/"
+                    data-tooltip="vim配置小记"
+                    aria-label="下一篇: vim配置小记"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2016/01/05/android如音符般震动/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2016/01/05/android如音符般震动/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2016/01/05/android如音符般震动/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 zhangliukun. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2016/01/18/android-opencv环境搭建/"
+                    data-tooltip="android opencv 环境搭建"
+                    aria-label="上一篇: android opencv 环境搭建"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2015/12/27/vim配置小记/"
+                    data-tooltip="vim配置小记"
+                    aria-label="下一篇: vim配置小记"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2016/01/05/android如音符般震动/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2016/01/05/android如音符般震动/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2016/01/05/android如音符般震动/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2016/01/05/android如音符般震动/"
+                        aria-label="分享到 Facebook"
+                    >
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>分享到 Facebook</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2016/01/05/android如音符般震动/"
+                        aria-label="分享到 Weibo"
+                    >
+                        <i class="fab fa-weibo" aria-hidden="true"></i><span>分享到 Weibo</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2016/01/05/android如音符般震动/"
+                        aria-label="分享到 Qzone"
+                    >
+                        <i class="fa fa-star" aria-hidden="true"></i><span>分享到 Qzone</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+            <h4 id="about-card-name">zhangliukun</h4>
+        
+            <div id="about-card-bio"><p>天蝎座？</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>学生</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br/>
+                Hangzhou
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-opoomiy5imbn3xwjxebdjebgsd1hwgcbosrvoydvgbs5mjvuui1wxks1q9cr.min.js"></script>
+<!--SCRIPTS END-->
+
+
+    
+
+
+
+
+    </body>
+</html>

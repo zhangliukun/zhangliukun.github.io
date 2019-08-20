@@ -1,0 +1,784 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="六锟小站">
+    <title>Git使用小记 - 六锟小站</title>
+    <meta name="author" content="zhangliukun">
+    
+    
+        <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
+    
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"前言：我们写代码写完后总要进行管理，以前写的很多代码虽然写的不是很好，但因为没有一个比较好的代码管理习惯，所以很多都遗失掉了，为此现在都还觉得很可惜，近来在学习使用git来进行代码管理，git是一个很强大的分布式版本控制系统。\n\ngit工作流程了解git，首先要弄清楚对象在被git管理过程中所处的4个阶段，分别是：工作目录、index(又称为暂存区)、本地仓库和远程仓库。\n从时间先后来讲，工作目录的内容是你当前看到的，也是最新的；index区标记了你当前工作目录中，哪些内容是被git管理的；而本地仓库保存了对象被提交过的各个版本，比起工作目录和暂存区的内容，它要更旧一些；远程仓库是本地仓库的异地备份，远程仓库的内容可能被分布在多个地点的处于协作关系的本地仓库修改，因此它可能与本地仓库同步，也可能不同步，但是它的内容是最旧的。\n任何对象都是在工作目录中诞生和被修改；任何修改都是从进入index区才开始被版本控制；只有把修改提交到本地仓库，该修改才能在仓库中留下痕迹；而要与协作者分享本地的修改，可以把它们push到远程仓库来共享。图最上方的add、commit、push等，展示了git仓库的产生过程。反过来，我们可以从远程历史仓库中获得本地仓库的最后一个版本，clone到本地，从本地检出对象的各个版本到index暂存区或工作目录中，从而实现任何对象或整个仓库的任意阶段状态的”回滚”。当正向和反向都能自由切换后，git就强大到无所不能了。\n远程仓库操作命令\n从远程仓库克隆仓库到本地：$ git clone git://github.com/**.git\n\n查看远程仓库别名以及地址：$ git remote -v\n\n添加远程仓库：$ git remote add [name] [url]\n\n删除远程仓库：$ git remote rm [name]\n\n修改远程仓库：$ git remote set-url –push [name] [newUrl]\n\n拉取远程仓库：$ git pull [remoteName] [localBranchName]\n\n推送远程仓库：$ git push [remoteName] [localBranchName]\n\n提交本地test分支作为远程的master分支：$git push origin test:master\n\n提交本地test分支作为远程的test分支：$git push origin test:test\n\n\n分支操作命令–branch\n查看远程和本地所有分支：$ git branch -a\n\n创建本地分支：$ git branch [name]\n\n切换分支：$ git checkout [name]\n\n创建新分支并且切换到新的分支：$ git check -b [name]\n\n复制远程的分支并且以此来创建新分支：$ git check -t /remotes/origin/branch1  //这样就能在本地创建一个复制来自远程branch1分支\n\n删除分支：$ git branch -d [name]  //-d选项只能删除已经参与了合并的分支，对于未有合并的分支是无法删除的。如果想强制删除一个分支，可以使用-D选项\n\n合并分支：$git merge [name]  //将名称为[name]的分支与当前的分支合并\n\n创建远程分支：(本地分支push到远程)：$ git push origin [name]\n\n删除远程分支：$ git push origin :heads/[name] 或 $ git push origin :[name]\n\n\n版本(tag)操作相关命令\n查看版本：$ git tag\n\n创建版本：$ git tag [name]\n\n删除版本：$ git tag -d [name]\n\n查看远程版本：$ git tag -r\n\n创建远程版本(本地版本push到远程)：$ git push origin [name]\n\n删除远程版本：$ git push origin :refs/tags/[name]\n\n合并远程仓库的tag到本地：$ git pull origin –tags\n\n上传本地tag到远程仓库：$ git push origin –tags\n\n创建带注释的tag：$ git tag -a [name] -m ‘yourMessage’\n\n\n子模块(submodule)相关操作命令\n添加子模块：$ git submodule add [url] [path]\n\n初始化子模块：$ git submodule init —-只在首次检出仓库时运行一次就行\n\n更新子模块：$ git submodule update —-每次更新或切换分支后都需要运行一下\n\n删除子模块：（分4步走哦）\n\n$ git rm –cached [path]\n\n编辑“.gitmodules”文件，将子模块的相关配置节点删除掉\n\n编辑“ .git/config”文件，将子模块的相关配置节点删除掉\n\n手动删除子模块残留的目录\n\n\n\n忽略一些文件、文件夹不提交\n\n在仓库根目录下创建名称为“.gitignore”的文件，写入不需要的文件夹名或文件，每个元素占一行即可，如\n\n\n\n12345targetbin*.db\n\n\n删除缓存区的文件\n\n不怎么进行删除操作，所以就常用这一个命令：$ git rm -r –cached .\n\n\n\ngit撤销操作撤销已暂存的操作对于一些已经被git add后的文件，如果想要撤销刚刚的操作，就要进行如下操作:\n\n首先查看一下本地有哪些已经被add但是还未commit的数据，\n\n1git status\n\n\n然后找到你要进行删掉的文件后，执行：\n\n1git reset HEAD filename\n\n撤销commit对于已经commit的数据，要回退的步骤为：\n1$ git rm -r --cached\n\ngit 版本回退关于版本回退略微有点小复杂，因为回退的版本涉及到两种情况，一种就是本地的版本回退，另一种则是本地和远程仓库都提交后的版本回退\n\n先来说说本地的好了，本地的话就依次执行一下操作即可。\n\n根据-soft,-mixed,-hard，会对working tree和index和HEAD进行重置：\n1.git reset -mixed：这种为默认方式，不带任何参数的git reset，它回退到某个版本，只保留源码，回退commit和index信息\n\n2.git reset -soft: 回退到某个版本，只回退了commit信息，不会恢复到index file一级。如果还要提交的话，直接commit即可。\n\n3.git reset -hard:彻底回退到某个版本，本地的源码也会变成上一个版本的内容，操作需要谨慎！！\n\n\n示例：\n\n* HEAD是指向最新的提交的，上一次的提交是HEAD^,上上次是HEAD^^,也可以写成HEAD~2,其中的--hard表示放弃所有本地改动\n1git reset --hard HEAD^ 或者也可以回退倒指定的版本\n1git reset --hard &lt;哈希值&gt;2.关于远程的话也得分情况了，如果远程仓库能够远程ssh上去的话那就比较简单了，方法和在本地一样了，但是如果ssh上不上去就不行了，这里我看到找到了两种方法：\n\n第一种就是比较暴力的方法，就是直接强制提交，git push -f,但是这个非常不推荐，除非你是自己一个人开发的小项目。\n\n第二种就是先将远程分支备份好以后直接删除，然后再将本地的回滚后的版本的push到远程分支上，这样就等于回退了版本。\n\n\ngit merge解冲突在进行git管理时在对两个分支进行merge时难免会产生冲突，这时候就要对两个分支进行解冲突。\n这里假设有两个分支，一个是develop分支，一个是developby分支，develop分支是主要分支，这时候，我们可以 在developby分支里面运行\n1git merge develop\n\n这样的话就将将develop中的内容merge到了developby分支中，如果没有冲突的话，merge完成，如果有冲突的话，运行\n1git diff\n\n这样的话git会列出有冲突的文件，比如：\n123456789&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEADprintf (“test1″);=======printf (“test2″);&gt;&gt;&gt;&gt;&gt;&gt;&gt; develop\n\n接下来我们来讲解一下里面的符号各代表什么意思。\n&lt;&lt;&lt;&lt;&lt;&lt;&lt; 标记冲突的开始，后面的内同是当前分支中的内容。\nHEAD 指向当前分支末梢的提交。\n=======之后，&gt;&gt;&gt;&gt;&gt;&gt;&gt;之前 是从develop分支上面merge过来的代码。&gt;&gt;&gt;&gt;&gt;&gt;&gt;之后跟的是要合并过来的分支的名称。\n然后我们就开始手动解冲突了\n这时候根据你的需要选择你要保留的是哪个分支上的代码，你要删除哪个分支上的代码，想要删除的代码就直接删掉就可以了，最后将多余符号删掉保存就可以了。\n一般的代码管理流程：\n远程已经建完仓库后直接克隆到本地： $ git clone [仓库地址]\n\n查看本地和远程的branch：$ git branch -a\n\n如果远程的branch更新了的话运行：$ git fetch -p      //这样会将远程的分支列表重新拉取\n\n将远程的branch复制到本地并且切换到这个分支下面：$ git checkout -t [远程分支名字]\n\n这是看到自己已经在新建的branch下面了，然后看一下有没有文件。\n\n若没有的话试一下：$ git pull\n\n做完修改以后的话先add：$ git add .      //这样会将除了在.gitignore中写入的文件都加入进要提交的文件内\n\n然后进行提交到本地仓库：$ git commit - m “提交”\n\n可以查看状态：$ git status 或者 $git diff\n\n如果没什么问题的话就进行提交到远程库： $ git push     //如果加入-f的话是强制提交。\n\n\n","dateCreated":"2014-08-13T17:21:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2014-08-13T17:21:00+08:00","description":"前言：我们写代码写完后总要进行管理，以前写的很多代码虽然写的不是很好，但因为没有一个比较好的代码管理习惯，所以很多都遗失掉了，为此现在都还觉得很可惜，近来在学习使用git来进行代码管理，git是一个很强大的分布式版本控制系统。\n\ngit工作流程了解git，首先要弄清楚对象在被git管理过程中所处的4个阶段，分别是：工作目录、index(又称为暂存区)、本地仓库和远程仓库。","headline":"Git使用小记","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2014/08/13/git使用小记/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2014/08/13/git使用小记/","keywords":"git"}</script>
+    <meta name="description" content="代码管理git使用教程">
+<meta name="keywords" content="git">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="Git使用小记">
+<meta property="og:url" content="http://zhangliukun.cn/2014/08/13/git使用小记/index.html">
+<meta property="og:site_name" content="六锟小站">
+<meta property="og:description" content="代码管理git使用教程">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:image" content="http://zhangliukun.cn/image/git%E6%B5%81%E7%A8%8B.png">
+<meta property="og:updated_time" content="2019-08-20T12:14:42.843Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Git使用小记">
+<meta name="twitter:description" content="代码管理git使用教程">
+<meta name="twitter:image" content="http://zhangliukun.cn/image/git%E6%B5%81%E7%A8%8B.png">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="http://zhangliukun.cn/assets/images/avatar.jpg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-4iwpnc93lrhj5xhp85jwjyjr2detotwl3e6te5tkbp5mthm9fmtbqzvsi9tc.min.css">
+    <!--STYLES END-->
+    
+
+    
+
+    
+        
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a
+            class="header-title-link"
+            href="/ "
+            aria-label=""
+        >
+            六锟小站
+        </a>
+    </div>
+    
+        
+            <a
+                class="header-right-picture "
+                href="#about"
+                aria-label="打开链接: /#about"
+            >
+        
+        
+            <img class="header-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a
+                    href="/#about"
+                    aria-label="阅读有关作者的更多信息"
+                >
+                    <img class="sidebar-profile-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+                </a>
+                <h4 class="sidebar-profile-name">zhangliukun</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>天蝎座？</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="首页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">首页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-tags"
+                            
+                            title="标签"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">标签</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-archives"
+                            
+                            title="归档"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">归档</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="#about"
+                            
+                            title="关于"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">关于</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/zhangliukun" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.facebook.com/zhang.zale" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fab fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/assets/love/index.html"
+                            title="Love"
+                        >
+                    
+                        <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Love</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/mailto"
+                            title="邮箱"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">邮箱</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            Git使用小记
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2014-08-13T17:21:00+08:00">
+	
+		    8月 13, 2014
+    	
+    </time>
+    
+        <span>发布在 </span>
+        
+    <a class="category-link" href="/categories/工具相关/">工具相关</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h2><p>我们写代码写完后总要进行管理，以前写的很多代码虽然写的不是很好，但因为没有一个比较好的代码管理习惯，所以很多都遗失掉了，为此现在都还觉得很可惜，近来在学习使用git来进行代码管理，git是一个很强大的分布式版本控制系统。</p>
+<p><img src="/image/git%E6%B5%81%E7%A8%8B.png" alt="git"></p>
+<h2 id="git工作流程"><a href="#git工作流程" class="headerlink" title="git工作流程"></a>git工作流程</h2><p>了解git，首先要弄清楚对象在被git管理过程中所处的4个阶段，分别是：工作目录、index(又称为暂存区)、本地仓库和远程仓库。<a id="more"></a></p>
+<p>从时间先后来讲，工作目录的内容是你当前看到的，也是最新的；index区标记了你当前工作目录中，哪些内容是被git管理的；而本地仓库保存了对象被提交过的各个版本，比起工作目录和暂存区的内容，它要更旧一些；远程仓库是本地仓库的异地备份，远程仓库的内容可能被分布在多个地点的处于协作关系的本地仓库修改，因此它可能与本地仓库同步，也可能不同步，但是它的内容是最旧的。</p>
+<p>任何对象都是在工作目录中诞生和被修改；任何修改都是从进入index区才开始被版本控制；只有把修改提交到本地仓库，该修改才能在仓库中留下痕迹；而要与协作者分享本地的修改，可以把它们push到远程仓库来共享。图最上方的add、commit、push等，展示了git仓库的产生过程。反过来，我们可以从远程历史仓库中获得本地仓库的最后一个版本，clone到本地，从本地检出对象的各个版本到index暂存区或工作目录中，从而实现任何对象或整个仓库的任意阶段状态的”回滚”。当正向和反向都能自由切换后，git就强大到无所不能了。</p>
+<h2 id="远程仓库操作命令"><a href="#远程仓库操作命令" class="headerlink" title="远程仓库操作命令"></a>远程仓库操作命令</h2><ul>
+<li><p>从远程仓库克隆仓库到本地：$ git clone git://github.com/<strong>**</strong>.git</p>
+</li>
+<li><p>查看远程仓库别名以及地址：$ git remote -v</p>
+</li>
+<li><p>添加远程仓库：$ git remote add [name] [url]</p>
+</li>
+<li><p>删除远程仓库：$ git remote rm [name]</p>
+</li>
+<li><p>修改远程仓库：$ git remote set-url –push [name] [newUrl]</p>
+</li>
+<li><p>拉取远程仓库：$ git pull [remoteName] [localBranchName]</p>
+</li>
+<li><p>推送远程仓库：$ git push [remoteName] [localBranchName]</p>
+</li>
+<li><p>提交本地test分支作为远程的master分支：$git push origin test:master</p>
+</li>
+<li><p>提交本地test分支作为远程的test分支：$git push origin test:test</p>
+</li>
+</ul>
+<h2 id="分支操作命令–branch"><a href="#分支操作命令–branch" class="headerlink" title="分支操作命令–branch"></a>分支操作命令–branch</h2><ul>
+<li><p>查看远程和本地所有分支：$ git branch -a</p>
+</li>
+<li><p>创建本地分支：$ git branch [name]</p>
+</li>
+<li><p>切换分支：$ git checkout [name]</p>
+</li>
+<li><p>创建新分支并且切换到新的分支：$ git check -b [name]</p>
+</li>
+<li><p>复制远程的分支并且以此来创建新分支：$ git check -t /remotes/origin/branch1  //这样就能在本地创建一个复制来自远程branch1分支</p>
+</li>
+<li><p>删除分支：$ git branch -d [name]  //-d选项只能删除已经参与了合并的分支，对于未有合并的分支是无法删除的。如果想强制删除一个分支，可以使用-D选项</p>
+</li>
+<li><p>合并分支：$git merge [name]  //将名称为[name]的分支与当前的分支合并</p>
+</li>
+<li><p>创建远程分支：(本地分支push到远程)：$ git push origin [name]</p>
+</li>
+<li><p>删除远程分支：$ git push origin :heads/[name] 或 $ git push origin :[name]</p>
+</li>
+</ul>
+<h2 id="版本-tag-操作相关命令"><a href="#版本-tag-操作相关命令" class="headerlink" title="版本(tag)操作相关命令"></a>版本(tag)操作相关命令</h2><ul>
+<li><p>查看版本：$ git tag</p>
+</li>
+<li><p>创建版本：$ git tag [name]</p>
+</li>
+<li><p>删除版本：$ git tag -d [name]</p>
+</li>
+<li><p>查看远程版本：$ git tag -r</p>
+</li>
+<li><p>创建远程版本(本地版本push到远程)：$ git push origin [name]</p>
+</li>
+<li><p>删除远程版本：$ git push origin :refs/tags/[name]</p>
+</li>
+<li><p>合并远程仓库的tag到本地：$ git pull origin –tags</p>
+</li>
+<li><p>上传本地tag到远程仓库：$ git push origin –tags</p>
+</li>
+<li><p>创建带注释的tag：$ git tag -a [name] -m ‘yourMessage’</p>
+</li>
+</ul>
+<h2 id="子模块-submodule-相关操作命令"><a href="#子模块-submodule-相关操作命令" class="headerlink" title="子模块(submodule)相关操作命令"></a>子模块(submodule)相关操作命令</h2><ul>
+<li><p>添加子模块：$ git submodule add [url] [path]</p>
+</li>
+<li><p>初始化子模块：$ git submodule init —-只在首次检出仓库时运行一次就行</p>
+</li>
+<li><p>更新子模块：$ git submodule update —-每次更新或切换分支后都需要运行一下</p>
+</li>
+<li><p>删除子模块：（分4步走哦）</p>
+<ol>
+<li><p>$ git rm –cached [path]</p>
+</li>
+<li><p>编辑“.gitmodules”文件，将子模块的相关配置节点删除掉</p>
+</li>
+<li><p>编辑“ .git/config”文件，将子模块的相关配置节点删除掉</p>
+</li>
+<li><p>手动删除子模块残留的目录</p>
+</li>
+</ol>
+</li>
+<li><p>忽略一些文件、文件夹不提交</p>
+<ul>
+<li>在仓库根目录下创建名称为“.gitignore”的文件，写入不需要的文件夹名或文件，每个元素占一行即可，如</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">target</span><br><span class="line"></span><br><span class="line">bin</span><br><span class="line"></span><br><span class="line">*.db</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>删除缓存区的文件</p>
+<ul>
+<li>不怎么进行删除操作，所以就常用这一个命令：$ git rm -r –cached .</li>
+</ul>
+</li>
+</ul>
+<h2 id="git撤销操作"><a href="#git撤销操作" class="headerlink" title="git撤销操作"></a>git撤销操作</h2><h3 id="撤销已暂存的操作"><a href="#撤销已暂存的操作" class="headerlink" title="撤销已暂存的操作"></a>撤销已暂存的操作</h3><p>对于一些已经被<strong>git add</strong>后的文件，如果想要撤销刚刚的操作，就要进行如下操作:</p>
+<ul>
+<li>首先查看一下本地有哪些已经被<strong>add</strong>但是还未<strong>commit</strong>的数据，</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git status</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>然后找到你要进行删掉的文件后，执行：</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git reset HEAD filename</span><br></pre></td></tr></table></figure>
+
+<h3 id="撤销commit"><a href="#撤销commit" class="headerlink" title="撤销commit"></a>撤销commit</h3><p>对于已经commit的数据，要回退的步骤为：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span> git rm -r --cached</span><br></pre></td></tr></table></figure>
+
+<h3 id="git-版本回退"><a href="#git-版本回退" class="headerlink" title="git 版本回退"></a>git 版本回退</h3><p><strong>关于版本回退略微有点小复杂，因为回退的版本涉及到两种情况，一种就是本地的版本回退，另一种则是本地和远程仓库都提交后的版本回退</strong></p>
+<ol>
+<li>先来说说本地的好了，本地的话就依次执行一下操作即可。</li>
+</ol>
+<p>根据-soft,-mixed,-hard，会对working tree和index和HEAD进行重置：</p>
+<pre><code>1.git reset -mixed：这种为默认方式，不带任何参数的git reset，它回退到某个版本，只保留源码，回退commit和index信息
+
+2.git reset -soft: 回退到某个版本，只回退了commit信息，不会恢复到index file一级。如果还要提交的话，直接commit即可。
+
+3.git reset -hard:彻底回退到某个版本，本地的源码也会变成上一个版本的内容，操作需要谨慎！！
+
+
+示例：
+
+* HEAD是指向最新的提交的，上一次的提交是HEAD^,上上次是HEAD^^,也可以写成HEAD~2,其中的--hard表示放弃所有本地改动
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git reset --hard HEAD^</span><br></pre></td></tr></table></figure></code></pre><p> 或者也可以回退倒指定的版本</p>
+<pre><code><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git reset --hard &lt;哈希值&gt;</span><br></pre></td></tr></table></figure></code></pre><p>2.关于远程的话也得分情况了，如果远程仓库能够远程ssh上去的话那就比较简单了，方法和在本地一样了，但是如果ssh上不上去就不行了，这里我看到找到了两种方法：</p>
+<ul>
+<li><p><strong>第一种就是比较暴力的方法，就是直接强制提交，git push -f,但是这个非常不推荐，除非你是自己一个人开发的小项目。</strong></p>
+</li>
+<li><p><strong>第二种就是先将远程分支备份好以后直接删除，然后再将本地的回滚后的版本的push到远程分支上，这样就等于回退了版本。</strong></p>
+</li>
+</ul>
+<h2 id="git-merge解冲突"><a href="#git-merge解冲突" class="headerlink" title="git merge解冲突"></a>git merge解冲突</h2><p><strong>在进行git管理时在对两个分支进行merge时难免会产生冲突，这时候就要对两个分支进行解冲突。</strong></p>
+<p>这里假设有两个分支，一个是develop分支，一个是developby分支，develop分支是主要分支，这时候，我们可以 在developby分支里面运行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git merge develop</span><br></pre></td></tr></table></figure>
+
+<p>这样的话就将将develop中的内容merge到了developby分支中，如果没有冲突的话，merge完成，如果有冲突的话，运行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git diff</span><br></pre></td></tr></table></figure>
+
+<p>这样的话git会列出有冲突的文件，比如：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span><br><span class="line"></span><br><span class="line">printf (“test1″);</span><br><span class="line"></span><br><span class="line">=======</span><br><span class="line"></span><br><span class="line">printf (“test2″);</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span>&gt;&gt;&gt;&gt;&gt;&gt; develop</span><br></pre></td></tr></table></figure>
+
+<p><strong>接下来我们来讲解一下里面的符号各代表什么意思。</strong></p>
+<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; 标记冲突的开始，后面的内同是当前分支中的内容。</p>
+<p>HEAD 指向当前分支末梢的提交。</p>
+<p>=======之后，&gt;&gt;&gt;&gt;&gt;&gt;&gt;之前 是从develop分支上面merge过来的代码。&gt;&gt;&gt;&gt;&gt;&gt;&gt;之后跟的是要合并过来的分支的名称。</p>
+<p><strong>然后我们就开始手动解冲突了</strong></p>
+<p>这时候根据你的需要选择你要保留的是哪个分支上的代码，你要删除哪个分支上的代码，想要删除的代码就直接删掉就可以了，最后将多余符号删掉保存就可以了。</p>
+<h2 id="一般的代码管理流程："><a href="#一般的代码管理流程：" class="headerlink" title="一般的代码管理流程："></a>一般的代码管理流程：</h2><ol>
+<li><p>远程已经建完仓库后直接克隆到本地： $ git clone [仓库地址]</p>
+</li>
+<li><p>查看本地和远程的branch：$ git branch -a</p>
+</li>
+<li><p>如果远程的branch更新了的话运行：$ git fetch -p      //这样会将远程的分支列表重新拉取</p>
+</li>
+<li><p>将远程的branch复制到本地并且切换到这个分支下面：$ git checkout -t [远程分支名字]</p>
+</li>
+<li><p>这是看到自己已经在新建的branch下面了，然后看一下有没有文件。</p>
+</li>
+<li><p>若没有的话试一下：$ git pull</p>
+</li>
+<li><p>做完修改以后的话先add：$ git add .      //这样会将除了在.gitignore中写入的文件都加入进要提交的文件内</p>
+</li>
+<li><p>然后进行提交到本地仓库：$ git commit - m “提交”</p>
+</li>
+<li><p>可以查看状态：$ git status 或者 $git diff</p>
+</li>
+<li><p>如果没什么问题的话就进行提交到远程库： $ git push     //如果加入-f的话是强制提交。</p>
+</li>
+</ol>
+
+            
+
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">标签</span><br/>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/git/">git</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2014/08/24/暑假之末/"
+                    data-tooltip="暑假之末"
+                    aria-label="上一篇: 暑假之末"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2014/08/13/正则表达式基础/"
+                    data-tooltip="正则表达式基础"
+                    aria-label="下一篇: 正则表达式基础"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2014/08/13/git使用小记/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2014/08/13/git使用小记/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2014/08/13/git使用小记/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 zhangliukun. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2014/08/24/暑假之末/"
+                    data-tooltip="暑假之末"
+                    aria-label="上一篇: 暑假之末"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2014/08/13/正则表达式基础/"
+                    data-tooltip="正则表达式基础"
+                    aria-label="下一篇: 正则表达式基础"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2014/08/13/git使用小记/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2014/08/13/git使用小记/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2014/08/13/git使用小记/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2014/08/13/git使用小记/"
+                        aria-label="分享到 Facebook"
+                    >
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>分享到 Facebook</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2014/08/13/git使用小记/"
+                        aria-label="分享到 Weibo"
+                    >
+                        <i class="fab fa-weibo" aria-hidden="true"></i><span>分享到 Weibo</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2014/08/13/git使用小记/"
+                        aria-label="分享到 Qzone"
+                    >
+                        <i class="fa fa-star" aria-hidden="true"></i><span>分享到 Qzone</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+            <h4 id="about-card-name">zhangliukun</h4>
+        
+            <div id="about-card-bio"><p>天蝎座？</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>学生</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br/>
+                Hangzhou
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-opoomiy5imbn3xwjxebdjebgsd1hwgcbosrvoydvgbs5mjvuui1wxks1q9cr.min.js"></script>
+<!--SCRIPTS END-->
+
+
+    
+
+
+
+
+    </body>
+</html>

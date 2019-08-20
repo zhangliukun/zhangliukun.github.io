@@ -1,0 +1,648 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="六锟小站">
+    <title>android 编译调用C代码 - 六锟小站</title>
+    <meta name="author" content="zhangliukun">
+    
+    
+        <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
+    
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"前言需求来源这几天帮别人做一个简单的android客户端，也没什么功能，主要就是调用C代码来对手机的Wifi网络进行设置，于是也就引出了技术难点所在，如何去调用C程序达到我们所需要的效果。\n解决方案对于这个，我想出了两种解决方案：\n\n\n第一种方案是利用JNI来进行本地调用。关于什么是JNI呢，JNI其实是Java Native Interface的简称，也就是java本地接口，它提供了若干API实现了java和其他语言的通信（主要是C和C++）。\n\n第二种方法是将要执行的C代码编译成可执行文件，然后将这个可执行文件和程序一起打包成APK，在需要使用的时候调用这个可执行文件。\n\n\n最终选择最后我选择了第二种方案，理由是第二种方法在我已经有了可执行文件的条件下总体来说比较简单，可操作性强。而第一种方案的话因为还要下载android的NDK，NDK是一系列工具的集合，提供了帮助开发者快速开发C或则C++的动态库，并能自动将so和java应用一起打包成apk，十分方便。\n技术实现可执行文件首先需要得到一个可执行文件，当然想要的到可执行文件并不是想象中的那么简单，不是在linux中直接gcc就能到的，这里需要对C代码进行交叉编译获得可以在android机子上运行的可执行文件，具体如何对C文件进行交叉编译，这里就不再赘述，大家可以上网查找一下。另外，NDK也是个不错的工具。\n资源存储这里的资源存储页算是个小坑，平常我们在写java程序的时候，如果要打开一个文件的话就直接输入路径，比如如果所要使用的文件就在项目的目录下，直接输入文件名就可以调用了，但是这里的运行环境是嵌入式设备，不是PC，这就涉及到一个问题，资源如何存储了。\n这里先谈一下Android中的asset文件夹和res/raw文件夹的异同：\n\n相同点\n两者目录下的文件在打包后都会原封不动的保存在apk包中，不会被编译成二进制。\n\n\n不同点\nres/raw中的文件会被映射到R.java中，访问的时候直接使用资源ID即可，而assets文件夹下的文件不会被映射到R.java。\nres/raw不可以有目录结构，而assets目录下可以再建立文件夹。\n\n\n\n资源获取这里顺带说一下res/raw下的文件资源的读取方法，通过以下方式获取输入流来进行写操作\n1InputStream is =getResources().openRawResource(R.id.filename);\n\n接下来才是我用到的读取assets下的方法，同样也是通过获取输入流的方式来进行写操作\n123AssetManager am = null; am = getAssets(); InputStream is = am.open(\"filename\");\n\n注意点：据说Assert只能放单个文件不超过1M的文件，但是不是真的具体还没考证过，如果碰到问题了应该考虑一下这个注意点。\n虽然读取是成功了，但是要用shell脚本执行的话，应该在手机的存储上应该有这个文件，光是读取的话在手机里面是找不见的，所以我们需要一个存文件的操作。这里我写了一个存文件的函数，其中将获取assets中数据的方法也结合进去了。\n123456789101112131415public  void copyDataToSD(String outFileName)throws IOException&#123;\tInputStream myInputStream;\tOutputStream myOutputStream = new FileOutputStream(outFileName);\tmyInputStream = this.getAssets().open(\"a.out\");\tbyte[] buffer = new byte[1024];\tint length = myInputStream.read(buffer);\twhile (length &gt; 0) &#123;\t\tmyOutputStream.write(buffer, 0, length);\t\tlength = myInputStream.read(buffer);\t&#125;\tmyOutputStream.flush();\tmyInputStream.close();\tmyOutputStream.close();&#125;\n\n然后我定义的传入的outFileName是定义的文件路径加文件名\n12private static String EXE_PATH = \"data/data/com.example.g3wifi/a.out\";private static File exe_file;\n\nshell命令执行到这里的话就是“万事俱备，只欠东风”了，我们需要执行所得到的可执行文件，因为android是基于linux的，所以一些基本的命令还是支持的，在android中要执行shell命令的话就按如下格式即可：\n12345678public  void exeC(String cmd)throws IOException&#123;\tRuntime runtime =Runtime.getRuntime();\tProcess process = runtime.exec(cmd);    //Process process = runtime.exec(new String[]&#123;\"su\",\"reboot\"&#125;);//可以执行两条命令    //这可以得到执行shell命令后的结果    BufferedReader ie = new BufferedReader(new InputStreamReader(process.getErrorStream()));&#125;\n\n","dateCreated":"2014-10-22T21:54:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2014-10-22T21:54:00+08:00","description":"前言需求来源这几天帮别人做一个简单的android客户端，也没什么功能，主要就是调用C代码来对手机的Wifi网络进行设置，于是也就引出了技术难点所在，如何去调用C程序达到我们所需要的效果。\n解决方案对于这个，我想出了两种解决方案：","headline":"android 编译调用C代码","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2014/10/22/Android编译执行C代码/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2014/10/22/Android编译执行C代码/","keywords":"android, 交叉编译, C"}</script>
+    <meta name="description" content="在android平台执行由C编译出来的可执行文件">
+<meta name="keywords" content="android,交叉编译,C">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="android 编译调用C代码">
+<meta property="og:url" content="http://zhangliukun.cn/2014/10/22/Android编译执行C代码/index.html">
+<meta property="og:site_name" content="六锟小站">
+<meta property="og:description" content="在android平台执行由C编译出来的可执行文件">
+<meta property="og:locale" content="zh-cn">
+<meta property="og:updated_time" content="2019-08-20T12:14:42.837Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="android 编译调用C代码">
+<meta name="twitter:description" content="在android平台执行由C编译出来的可执行文件">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="http://zhangliukun.cn/assets/images/avatar.jpg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-4iwpnc93lrhj5xhp85jwjyjr2detotwl3e6te5tkbp5mthm9fmtbqzvsi9tc.min.css">
+    <!--STYLES END-->
+    
+
+    
+
+    
+        
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a
+            class="header-title-link"
+            href="/ "
+            aria-label=""
+        >
+            六锟小站
+        </a>
+    </div>
+    
+        
+            <a
+                class="header-right-picture "
+                href="#about"
+                aria-label="打开链接: /#about"
+            >
+        
+        
+            <img class="header-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a
+                    href="/#about"
+                    aria-label="阅读有关作者的更多信息"
+                >
+                    <img class="sidebar-profile-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+                </a>
+                <h4 class="sidebar-profile-name">zhangliukun</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>天蝎座？</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/ "
+                            
+                            title="首页"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">首页</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-categories"
+                            
+                            title="分类"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">分类</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-tags"
+                            
+                            title="标签"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">标签</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/all-archives"
+                            
+                            title="归档"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">归档</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="#about"
+                            
+                            title="关于"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">关于</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://github.com/zhangliukun" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                    
+                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Twitter</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link " href="https://www.facebook.com/zhang.zale" target="_blank" rel="noopener" title="Facebook">
+                    
+                        <i class="sidebar-button-icon fab fa-facebook" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Facebook</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/assets/love/index.html"
+                            title="Love"
+                        >
+                    
+                        <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Love</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a  class="sidebar-button-link "
+                             href="/mailto"
+                            title="邮箱"
+                        >
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">邮箱</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            android 编译调用C代码
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2014-10-22T21:54:00+08:00">
+	
+		    10月 22, 2014
+    	
+    </time>
+    
+        <span>发布在 </span>
+        
+    <a class="category-link" href="/categories/android/">android</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><h2 id="需求来源"><a href="#需求来源" class="headerlink" title="需求来源"></a>需求来源</h2><p>这几天帮别人做一个简单的android客户端，也没什么功能，主要就是调用C代码来对手机的Wifi网络进行设置，于是也就引出了技术难点所在，如何去调用<strong>C程序</strong>达到我们所需要的效果。</p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><p>对于这个，我想出了两种解决方案：</p>
+<a id="more"></a>
+<ol>
+<li><p>第一种方案是利用<a href="http://baike.baidu.com/view/1272329.htm?fr=aladdin" target="_blank" rel="noopener"><strong>JNI</strong></a>来进行本地调用。关于什么是JNI呢，JNI其实是<strong>Java Native Interface</strong>的简称，也就是java本地接口，它提供了若干API实现了java和其他语言的通信（主要是C和C++）。</p>
+</li>
+<li><p>第二种方法是将要执行的C代码编译成<strong>可执行文件</strong>，然后将这个可执行文件和程序一起打包成APK，在需要使用的时候调用这个可执行文件。</p>
+</li>
+</ol>
+<h2 id="最终选择"><a href="#最终选择" class="headerlink" title="最终选择"></a>最终选择</h2><p>最后我选择了第二种方案，理由是第二种方法在我已经有了可执行文件的条件下总体来说比较简单，可操作性强。而第一种方案的话因为还要下载android的<a href="http://www.cnblogs.com/devinzhang/archive/2012/02/29/2373729.html" target="_blank" rel="noopener">NDK</a>，NDK是一系列工具的集合，提供了帮助开发者快速开发C或则C++的动态库，并能自动将so和java应用一起打包成apk，十分方便。</p>
+<h1 id="技术实现"><a href="#技术实现" class="headerlink" title="技术实现"></a>技术实现</h1><h2 id="可执行文件"><a href="#可执行文件" class="headerlink" title="可执行文件"></a>可执行文件</h2><p>首先需要得到一个可执行文件，当然想要的到可执行文件并不是想象中的那么简单，不是在linux中直接<strong>gcc</strong>就能到的，这里需要对C代码进行<a href="http://baike.baidu.com/view/650389.htm?fr=aladdin" target="_blank" rel="noopener"><strong>交叉编译</strong></a>获得可以在android机子上运行的可执行文件，具体如何对C文件进行交叉编译，这里就不再赘述，大家可以上网查找一下。另外，NDK也是个不错的工具。</p>
+<h2 id="资源存储"><a href="#资源存储" class="headerlink" title="资源存储"></a>资源存储</h2><p>这里的资源存储页算是个小坑，平常我们在写java程序的时候，如果要打开一个文件的话就直接输入路径，比如如果所要使用的文件就在项目的目录下，直接输入文件名就可以调用了，但是这里的运行环境是嵌入式设备，不是PC，这就涉及到一个问题，资源如何存储了。</p>
+<p>这里先谈一下Android中的<strong>asset文件夹</strong>和<strong>res/raw文件夹</strong>的异同：</p>
+<ul>
+<li>相同点<ul>
+<li>两者目录下的文件在打包后都会<strong>原封不动</strong>的保存在apk包中，不会被编译成二进制。</li>
+</ul>
+</li>
+<li>不同点<ul>
+<li>res/raw中的文件会被映射到R.java中，访问的时候直接使用资源ID即可，而assets文件夹下的文件不会被映射到R.java。</li>
+<li>res/raw不可以有<strong>目录结构</strong>，而assets目录下可以再建立文件夹。</li>
+</ul>
+</li>
+</ul>
+<h2 id="资源获取"><a href="#资源获取" class="headerlink" title="资源获取"></a>资源获取</h2><p>这里顺带说一下<strong>res/raw</strong>下的文件资源的读取方法，通过以下方式获取输入流来进行写操作</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">InputStream is =getResources().openRawResource(R.id.filename);</span><br></pre></td></tr></table></figure>
+
+<p>接下来才是我用到的读取<strong>assets</strong>下的方法，同样也是通过获取输入流的方式来进行写操作</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">AssetManager am = <span class="keyword">null</span>; </span><br><span class="line">am = getAssets(); </span><br><span class="line">InputStream is = am.open(<span class="string">"filename"</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意点：</strong>据说Assert只能放单个文件不超过<strong>1M</strong>的文件，但是不是真的具体还没考证过，如果碰到问题了应该考虑一下这个注意点。</p>
+<p>虽然读取是成功了，但是要用<strong>shell</strong>脚本执行的话，应该在手机的存储上应该有这个文件，光是读取的话在手机里面是找不见的，所以我们需要一个存文件的操作。这里我写了一个存文件的函数，其中将获取assets中数据的方法也结合进去了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span>  <span class="keyword">void</span> <span class="title">copyDataToSD</span><span class="params">(String outFileName)</span><span class="keyword">throws</span> IOException</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	InputStream myInputStream;</span><br><span class="line">	OutputStream myOutputStream = <span class="keyword">new</span> FileOutputStream(outFileName);</span><br><span class="line">	myInputStream = <span class="keyword">this</span>.getAssets().open(<span class="string">"a.out"</span>);</span><br><span class="line">	<span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">	<span class="keyword">int</span> length = myInputStream.read(buffer);</span><br><span class="line">	<span class="keyword">while</span> (length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">		myOutputStream.write(buffer, <span class="number">0</span>, length);</span><br><span class="line">		length = myInputStream.read(buffer);</span><br><span class="line">	&#125;</span><br><span class="line">	myOutputStream.flush();</span><br><span class="line">	myInputStream.close();</span><br><span class="line">	myOutputStream.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后我定义的传入的outFileName是定义的文件路径加文件名</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> String EXE_PATH = <span class="string">"data/data/com.example.g3wifi/a.out"</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> File exe_file;</span><br></pre></td></tr></table></figure>
+
+<h2 id="shell命令执行"><a href="#shell命令执行" class="headerlink" title="shell命令执行"></a>shell命令执行</h2><p>到这里的话就是“万事俱备，只欠东风”了，我们需要执行所得到的可执行文件，因为android是基于<strong>linux</strong>的，所以一些基本的命令还是支持的，在android中要执行shell命令的话就按如下格式即可：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span>  <span class="keyword">void</span> <span class="title">exeC</span><span class="params">(String cmd)</span><span class="keyword">throws</span> IOException</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	Runtime runtime =Runtime.getRuntime();</span><br><span class="line">	Process process = runtime.exec(cmd);</span><br><span class="line">    <span class="comment">//Process process = runtime.exec(new String[]&#123;"su","reboot"&#125;);//可以执行两条命令</span></span><br><span class="line">    <span class="comment">//这可以得到执行shell命令后的结果</span></span><br><span class="line">    BufferedReader ie = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(process.getErrorStream()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+            
+
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">标签</span><br/>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/C/">C</a> <a class="tag tag--primary tag--small t-link" href="/tags/android/">android</a> <a class="tag tag--primary tag--small t-link" href="/tags/交叉编译/">交叉编译</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2014/10/26/java自制线程池/"
+                    data-tooltip="java自制线程池"
+                    aria-label="上一篇: java自制线程池"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2014/09/17/NIO精粹/"
+                    data-tooltip="java NIO详解"
+                    aria-label="下一篇: java NIO详解"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2014/10/22/Android编译执行C代码/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2014/10/22/Android编译执行C代码/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2014/10/22/Android编译执行C代码/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 zhangliukun. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2014/10/26/java自制线程池/"
+                    data-tooltip="java自制线程池"
+                    aria-label="上一篇: java自制线程池"
+                >
+                    
+                        <i class="fa fa-angle-left" aria-hidden="true"></i>
+                        <span class="hide-xs hide-sm text-small icon-ml">上一篇</span>
+                    </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                <a
+                    class="post-action-btn btn btn--default tooltip--top"
+                    href="/2014/09/17/NIO精粹/"
+                    data-tooltip="java NIO详解"
+                    aria-label="下一篇: java NIO详解"
+                >
+                    
+                        <span class="hide-xs hide-sm text-small icon-mr">下一篇</span>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a
+                class="post-action-btn btn btn--default btn-open-shareoptions"
+                href="#btn-open-shareoptions"
+                aria-label="Diesen Beitrag teilen"
+            >
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2014/10/22/Android编译执行C代码/"
+                    title="分享到 Facebook"
+                    aria-label="分享到 Facebook"
+                >
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2014/10/22/Android编译执行C代码/"
+                    title="分享到 Weibo"
+                    aria-label="分享到 Weibo"
+                >
+                    <i class="fab fa-weibo" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a
+                    class="post-action-btn btn btn--default"
+                    target="new" href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2014/10/22/Android编译执行C代码/"
+                    title="分享到 Qzone"
+                    aria-label="分享到 Qzone"
+                >
+                    <i class="fa fa-star" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="https://www.facebook.com/sharer/sharer.php?u=http://zhangliukun.cn/2014/10/22/Android编译执行C代码/"
+                        aria-label="分享到 Facebook"
+                    >
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>分享到 Facebook</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://service.weibo.com/share/share.php?&amp;title=http://zhangliukun.cn/2014/10/22/Android编译执行C代码/"
+                        aria-label="分享到 Weibo"
+                    >
+                        <i class="fab fa-weibo" aria-hidden="true"></i><span>分享到 Weibo</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a
+                        class="share-option-btn"
+                        target="new"
+                        href="http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=http://zhangliukun.cn/2014/10/22/Android编译执行C代码/"
+                        aria-label="分享到 Qzone"
+                    >
+                        <i class="fa fa-star" aria-hidden="true"></i><span>分享到 Qzone</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/avatar.jpg" alt="作者的图片"/>
+        
+            <h4 id="about-card-name">zhangliukun</h4>
+        
+            <div id="about-card-bio"><p>天蝎座？</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br/>
+                <p>学生</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br/>
+                Hangzhou
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-opoomiy5imbn3xwjxebdjebgsd1hwgcbosrvoydvgbs5mjvuui1wxks1q9cr.min.js"></script>
+<!--SCRIPTS END-->
+
+
+    
+
+
+
+
+    </body>
+</html>
