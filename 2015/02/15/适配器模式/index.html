@@ -13,7 +13,7 @@
         <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
     
     
-    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"定义适配器模式\n将一个类的接口转换成客户希望的另外一个接口，Adapter模式使得原本由于接口不兼容而不能一起工作的那些类可以一起工作。\n类型结构型模式。\n类图\n\n\n\n适用性\n你想使用一个已经存在的类，而它的接口不符合你的要求。\n你想创建一个可以复用的类，该类可以与其他不相关的类或者不可预见的类（即那些接口可能不一定兼容的类）协同工作\n（仅适用于对象Adapter）你想使用一些已经存在的子类，但是不可能对每一个都进行子类化以匹配它们的接口。对象适配器可以适配它的父类接口。\n\n结构\nTarget\n 定义Client使用的与特定领域相关的接口\n\nClient\n 与符合的Target接口的对象协同\n\nAdaptee\n 定义一个已经存在的接口，这个接口需要适配\n\nAdapter\n 对Adaptee的接口与Target接口进行适配\n\n\n代码实现Target接口\n12345public interface Target&#123;    void adapteeMethod();    void adapterMethod();&#125;\n\nAdaptee类\n12345public class Adaptee&#123;    public void adapteeMethod()&#123;        System.out.println(\"Adaptee method\");    &#125;&#125;\n\nAdapter实现Target接口类\n12345678910111213141516public class Adapter implements Target&#123;        private Adaptee adaptee;        public Adapter(Adaptee adaptee)&#123;        this.adaptee = adaptee;    &#125;        public void adapteeMethod()&#123;        adaptee.adapteeMethod();    &#125;        public void adapterMethod()&#123;        System.out.println(\"Adapter method!\");    &#125;&#125;\n\n主方法类Test\n12345678910public class Test &#123;    public static void main(String[] args) &#123;        Target target = new Adapter(new Adaptee());                target.adapteeMethod();        target.adapterMethod();        &#125;&#125;\n\n运行结果\n12Adaptee methodAdapter method\n\n总结优点\n\n通过适配器，客户端可以调用同一接口，因而对客户端来说是透明的。这样做更简单、更直接、更紧凑。\n\n复用了现存的类，解决了现存类和复用环境要求不一致的问题。\n\n将目标类和适配者类解耦，通过引入一个适配器类重用现有的适配者类，而无需修改原有代码。\n\n一个对象适配器可以把多个不同的适配者类适配到同一个目标，也就是说，同一个适配器可以把适配者类和它的子类都适配到目标接口。\n\n\n缺点\n\n对于对象适配器来说，更换适配器的实现过程比较复杂。\n\n","dateCreated":"2015-02-15T09:07:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2015-02-15T09:07:00+08:00","description":"定义适配器模式\n将一个类的接口转换成客户希望的另外一个接口，Adapter模式使得原本由于接口不兼容而不能一起工作的那些类可以一起工作。\n类型结构型模式。\n类图","headline":"适配器模式","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2015/02/15/适配器模式/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2015/02/15/适配器模式/","keywords":"CS Base"}</script>
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://weibo.com/3868391086/profile?topnav=1&wvr=6","https://www.facebook.com/zhang.zale","assets/love/index.html"],"image":"avatar.jpg"},"articleBody":"\n\n\n定义适配器模式\n将一个类的接口转换成客户希望的另外一个接口，Adapter模式使得原本由于接口不兼容而不能一起工作的那些类可以一起工作。\n类型结构型模式。\n类图\n适用性\n你想使用一个已经存在的类，而它的接口不符合你的要求。\n你想创建一个可以复用的类，该类可以与其他不相关的类或者不可预见的类（即那些接口可能不一定兼容的类）协同工作\n（仅适用于对象Adapter）你想使用一些已经存在的子类，但是不可能对每一个都进行子类化以匹配它们的接口。对象适配器可以适配它的父类接口。\n\n结构\nTarget\n 定义Client使用的与特定领域相关的接口\n\nClient\n 与符合的Target接口的对象协同\n\nAdaptee\n 定义一个已经存在的接口，这个接口需要适配\n\nAdapter\n 对Adaptee的接口与Target接口进行适配\n\n\n代码实现Target接口\n12345public interface Target&#123;    void adapteeMethod();    void adapterMethod();&#125;\n\nAdaptee类\n12345public class Adaptee&#123;    public void adapteeMethod()&#123;        System.out.println(\"Adaptee method\");    &#125;&#125;\n\nAdapter实现Target接口类\n12345678910111213141516public class Adapter implements Target&#123;        private Adaptee adaptee;        public Adapter(Adaptee adaptee)&#123;        this.adaptee = adaptee;    &#125;        public void adapteeMethod()&#123;        adaptee.adapteeMethod();    &#125;        public void adapterMethod()&#123;        System.out.println(\"Adapter method!\");    &#125;&#125;\n\n主方法类Test\n12345678910public class Test &#123;    public static void main(String[] args) &#123;        Target target = new Adapter(new Adaptee());                target.adapteeMethod();        target.adapterMethod();        &#125;&#125;\n\n运行结果\n12Adaptee methodAdapter method\n\n总结优点\n\n通过适配器，客户端可以调用同一接口，因而对客户端来说是透明的。这样做更简单、更直接、更紧凑。\n\n复用了现存的类，解决了现存类和复用环境要求不一致的问题。\n\n将目标类和适配者类解耦，通过引入一个适配器类重用现有的适配者类，而无需修改原有代码。\n\n一个对象适配器可以把多个不同的适配者类适配到同一个目标，也就是说，同一个适配器可以把适配者类和它的子类都适配到目标接口。\n\n\n缺点\n\n对于对象适配器来说，更换适配器的实现过程比较复杂。\n\n","dateCreated":"2015-02-15T09:07:00+08:00","dateModified":"2019-08-20T21:12:57+08:00","datePublished":"2015-02-15T09:07:00+08:00","description":"","headline":"适配器模式","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2015/02/15/适配器模式/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://weibo.com/3868391086/profile?topnav=1&wvr=6","https://www.facebook.com/zhang.zale","assets/love/index.html"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2015/02/15/适配器模式/","keywords":"CS Base"}</script>
     <meta name="description" content="设计模式，适配器模式,结构性模式">
 <meta name="keywords" content="CS Base">
 <meta property="og:type" content="blog">
@@ -23,7 +23,7 @@
 <meta property="og:description" content="设计模式，适配器模式,结构性模式">
 <meta property="og:locale" content="zh-cn">
 <meta property="og:image" content="http://zhangliukun.cn/image/AdapterMode.jpg">
-<meta property="og:updated_time" content="2019-08-20T12:14:42.852Z">
+<meta property="og:updated_time" content="2019-08-20T13:12:57.855Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="适配器模式">
 <meta name="twitter:description" content="设计模式，适配器模式,结构性模式">
@@ -194,10 +194,10 @@
             
                 <li class="sidebar-button">
                     
-                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                        <a  class="sidebar-button-link " href="https://weibo.com/3868391086/profile?topnav=1&wvr=6" target="_blank" rel="noopener" title="Weibo">
                     
-                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Twitter</span>
+                        <i class="sidebar-button-icon fab fa-weibo" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Weibo</span>
                     </a>
             </li>
             
@@ -219,18 +219,6 @@
                     
                         <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
                         <span class="sidebar-button-desc">Love</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a  class="sidebar-button-link "
-                             href="/mailto"
-                            title="邮箱"
-                        >
-                    
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">邮箱</span>
                     </a>
             </li>
             
@@ -276,13 +264,13 @@
     
     <div class="post-content markdown">
         <div class="main-content-wrap">
-            <h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p><strong>适配器模式</strong></p>
+            <h1 id="table-of-contents">目录</h1><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#定义"><span class="toc-text">定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#类型"><span class="toc-text">类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#类图"><span class="toc-text">类图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#适用性"><span class="toc-text">适用性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结构"><span class="toc-text">结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#代码实现"><span class="toc-text">代码实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-text">总结</span></a></li></ol>
+
+<a id="more"></a>
+<h2 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h2><p><strong>适配器模式</strong></p>
 <p>将一个类的接口转换成客户希望的另外一个接口，Adapter模式使得原本由于接口不兼容而不能一起工作的那些类可以一起工作。</p>
 <h2 id="类型"><a href="#类型" class="headerlink" title="类型"></a>类型</h2><p><strong>结构型模式</strong>。</p>
 <h2 id="类图"><a href="#类图" class="headerlink" title="类图"></a>类图</h2><p><img src="/image/AdapterMode.jpg" alt="适配器模式"></p>
-<a id="more"></a>
-
-
 <h2 id="适用性"><a href="#适用性" class="headerlink" title="适用性"></a>适用性</h2><ol>
 <li>你想使用一个已经存在的类，而它的接口不符合你的要求。</li>
 <li>你想创建一个可以复用的类，该类可以与其他不相关的类或者不可预见的类（即那些接口可能不一定兼容的类）协同工作</li>
@@ -436,7 +424,7 @@
         
         <li class="post-action">
             
-                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+                <a class="post-action-btn btn btn--default" href="#table-of-contents" aria-label="目录">
             
                 <i class="fa fa-list" aria-hidden="true"></i>
             </a>
@@ -551,7 +539,7 @@
         
         <li class="post-action">
             
-                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+                <a class="post-action-btn btn btn--default" href="#table-of-contents" aria-label="目录">
             
                 <i class="fa fa-list" aria-hidden="true"></i>
             </a>

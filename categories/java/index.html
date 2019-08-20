@@ -185,10 +185,10 @@
             
                 <li class="sidebar-button">
                     
-                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                        <a  class="sidebar-button-link " href="https://weibo.com/3868391086/profile?topnav=1&wvr=6" target="_blank" rel="noopener" title="Weibo">
                     
-                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Twitter</span>
+                        <i class="sidebar-button-icon fab fa-weibo" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Weibo</span>
                     </a>
             </li>
             
@@ -210,18 +210,6 @@
                     
                         <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
                         <span class="sidebar-button-desc">Love</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a  class="sidebar-button-link "
-                             href="/mailto"
-                            title="邮箱"
-                        >
-                    
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">邮箱</span>
                     </a>
             </li>
             
@@ -272,18 +260,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>虚拟机把描述类的数据从 Class 文件加载到内存，并对数据进行<strong>校验</strong>、<strong>转换解析</strong>和<strong>初始化</strong>，最终形成可以被虚拟机直接使用的 Java 类型，这就是虚拟机的<strong>类加载机制</strong>。<br>与那些编译时需要进行链接的语言不同，Java 里面类型的加载、链接和初始化过程都是在程序运行期间完成的，Java 的动态扩展语言特性就是依赖运行期动态加载和动态链接这个特点实现的。用户可以通过 Java 预定义的和自定义的类加载器来使用运行时从网络或者其他地方加载的一个二进制流作为程序代码的一部分。</p>
-<h2 id="类加载的时机"><a href="#类加载的时机" class="headerlink" title="类加载的时机"></a>类加载的时机</h2><p>类从被加载到虚拟机内存中开始，到卸载出内存为止，整个的生命周期包括：</p>
-<ul>
-<li><strong>加载（Loading）</strong></li>
-<li><strong>验证（Verification）</strong></li>
-<li><strong>准备（Preparation）</strong></li>
-<li><strong>解析（Resolution）</strong></li>
-<li><strong>初始化（Initialization）</strong></li>
-<li><strong>使用（Using）</strong></li>
-<li><strong>卸载（Unloading）</strong></li>
-</ul>
-<p><img src="/image/classloader_life.png" alt="类加载机制"></p>
+                    <!-- toc-->
                     
                         <a
                             href="/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/"
@@ -334,7 +311,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>如今编写成二进制本地机器码已经不是唯一的选择了，越来越多的程序语言选择了与操作系统和机器指令集无关的、平台中立的格式作为程序编译以后的存储格式。各种不同的平台的虚拟机与所有的平台统一使用的程序存储格式是“字节码（ByteCode）”，实现语言无关性的基础仍然是<strong>虚拟机</strong>和<strong>字节码存储格式</strong>。Java 虚拟机不和任何语言绑定，它只和“Class 文件”这种特定的二进制文件格式所关联，Class 文件中包含了 <strong>Java 虚拟机指令集</strong>和<strong>符号表</strong>以及若干其他的辅助信息。主要能编译成 Class 文件，Java 虚拟机并不关心来源是何种语言，所以Glojure、Groovy、Scala、JRuby、Jython 这些能够编译成 Class 文件的语言都可以在 Java 虚拟机上面运行。</p>
+                    <!-- toc-->
                     
                         <a
                             href="/2017/03/10/《深入理解Java虚拟机》读书笔记（四）类文件结构/"
@@ -385,14 +362,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="垃圾收集器关心的内存"><a href="#垃圾收集器关心的内存" class="headerlink" title="垃圾收集器关心的内存"></a>垃圾收集器关心的内存</h2><ul>
-<li><strong>程序计数器、虚拟机栈、本地方法栈</strong>这三个区域是线程私有的，生命周期和线程相同。</li>
-<li>栈中的<strong>栈帧</strong>随着方法的进入和退出规则的入栈和出栈，每一个栈帧中分配的内存在类结构确定后基本就是已知的。</li>
-</ul>
-<p>这几个区域的内存分配都是确定的，不需要过多考虑回收的问题，因为方法结束或者线程结束以后，内存自然就回收了。</p>
-<ul>
-<li><strong>Java 堆</strong>和<strong>方法区</strong>则不一样，一个接口中的多个实现类所需要的内存也不一样，我们只有在程序出于运行中才能知道会创建哪些对象，这部分的内存的分配和回收都是动态的，垃圾回收主要关注的是这部分内存。</li>
-</ul>
+                    <!-- toc-->
                     
                         <a
                             href="/2017/02/24/《深入理解Java虚拟机》读书笔记（三）垃圾收集器和内存分配策略/"
@@ -443,8 +413,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>Java 和 C++之间的区别在于内存动态分配和垃圾收集技术。这篇主要介绍 Java 虚拟机内存的各个区域的作用、服务对象以及一些问题。</p>
-<h2 id="运行时数据区"><a href="#运行时数据区" class="headerlink" title="运行时数据区"></a>运行时数据区</h2><p>Java 虚拟机在执行 Java 程序的过程中会把管理的内存划分为若干个不同的数据区域，如下所示：<br><img src="/image/java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA%E5%9F%9F.png" alt="java运行时数据区"></p>
+                    <!-- toc-->
                     
                         <a
                             href="/2017/02/22/《深入理解Java虚拟机》读书笔记（二）Java内存区域/"
@@ -495,13 +464,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h1 id="走近-Java"><a href="#走近-Java" class="headerlink" title="走近 Java"></a>走近 Java</h1><h2 id="Java-技术体系"><a href="#Java-技术体系" class="headerlink" title="Java 技术体系"></a>Java 技术体系</h2><p>广义上讲，Clojure、JRuby、Groovy等运行于 Java 虚拟机上面的语言都属于 Java 技术体系中的一员，传统意义上面讲，Sun 官方定义的技术体系包括：</p>
-<ul>
-<li>Java 程序设计语言</li>
-<li>各种硬件平台上面的 Java 虚拟机</li>
-<li>Class 文件格式</li>
-<li>Java API 类库</li>
-<li>第三方 Java 类库
+                    <!-- toc-->
                     
                         <a
                             href="/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/"
@@ -552,14 +515,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="1-Hibernate持久化实现"><a href="#1-Hibernate持久化实现" class="headerlink" title="1.Hibernate持久化实现"></a>1.Hibernate持久化实现</h2><h3 id="1-1实体对象生命周期"><a href="#1-1实体对象生命周期" class="headerlink" title="1.1实体对象生命周期"></a>1.1实体对象生命周期</h3><ul>
-<li>实体对象的3种状态<ul>
-<li><strong>Transient（自由状态）：</strong>实体对象在内存中自由存在，与数据库的记录无关。</li>
-<li><strong>Persistent（持久状态）：</strong>实体对象处于Hibernate框架管理中。</li>
-<li><strong>Detached（游离状态）：</strong>处于Persistent状态的对象，其对应的Session实例关闭后，就处于游离状态。</li>
-</ul>
-</li>
-</ul>
+                    <!-- toc-->
                     
                         <a
                             href="/2015/05/13/hibernate高级特性/"
@@ -610,7 +566,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="hibernate基础语义"><a href="#hibernate基础语义" class="headerlink" title="hibernate基础语义"></a>hibernate基础语义</h2><h3 id="1-Configuration"><a href="#1-Configuration" class="headerlink" title="1.Configuration"></a>1.Configuration</h3><p>Configuration类负责管理Hibernate的配置信息。Hibernate运行时需要获取一些底层实现的基本信息。这些属性可以在Hibernate配置文件（hibernate.cfg.xml或hibernate.properties）中加以设定。</p>
+                    <!-- toc-->
                     
                         <a
                             href="/2015/04/26/hibernate入门/"
@@ -661,11 +617,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>垃圾回收机制主要完成下面两件事情。</p>
-<ul>
-<li>跟踪并监控每个java对象，当某个对象处于不可达状态是，回收所占用内存</li>
-<li>清理内存分配，回收过程中产生的内存碎片</li>
-</ul>
+                    <!-- toc-->
                     
                         <a
                             href="/2015/03/15/java垃圾回收机制/"
@@ -716,8 +668,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><h2 id="线程池"><a href="#线程池" class="headerlink" title="线程池"></a>线程池</h2><p>线程池的基本思想是一种对象池的思想，先开辟一块内存空间，开许多等待任务的线程，一旦有任务出现就直接使用线程池中的线程来进行任务，等到任务结束后再将这个线程放入线程池中，池中的执行调度由线程池管理器来管理。</p>
-<h2 id="线程池作用"><a href="#线程池作用" class="headerlink" title="线程池作用"></a>线程池作用</h2><p>线程池的作用就是更好的对系统中的线程进行管理，根据系统的环境，可以自动或者手动的设置线程数量，达到运行的最佳效果。</p>
+                    <!-- toc-->
                     
                         <a
                             href="/2014/10/26/java自制线程池/"
@@ -768,8 +719,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>我们在写java程序的时候，为了进行优化，把全部的精力用在了处理效率上，但是对IO的关注却很少。这也可能是由以前java早期时JVM在解释字节码时速度慢，运行速率大大低于本地编译代码，因此以前往往忽视了IO的优化。   </p>
-<p>但是现在<a href="http://baike.baidu.com/view/160708.htm" target="_blank" rel="noopener">JVM</a>在运行时优化已前进了一大步，现在的java应用程序更多的是受IO的束缚，也就是将时间花在等待数据传输上。现在有了<a href="http://baike.baidu.com/view/1007976.htm?from_id=13029359&type=syn&fromtitle=java+nio&fr=aladdin" target="_blank" rel="noopener">NIO</a>，就可以减少<a href="http://baike.baidu.com/subview/1142749/5362454.htm" target="_blank" rel="noopener">IO</a>的等待时间，从而提升IO的效率。</p>
+                    <!-- toc-->
                     
                         <a
                             href="/2014/09/17/NIO精粹/"

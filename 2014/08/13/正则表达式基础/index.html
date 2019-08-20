@@ -13,7 +13,7 @@
         <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
     
     
-    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"\n前言正则表达式使用单个字符串来描述、匹配一系列符合某个句法规则的字符串。在很多文本编辑器里，正则表达式通常被用来检索、替换那些符合某个模式的文本，许多程序设计语言都支持利用正则表达式进行字符串操作，因此正则表达式还是非常强大的，它对于一些文本的处理非常简洁从而能有效缩短代码的长度。\n\n简单的转义字符123456789101112普通字符：字母，数字，汉子，下划线以及没有特殊定义的标点符号都是“普通字符”。   表达式中的普通字符，在匹配一个字符串的时候，匹配与之相同的一个字符简单的转义字符：\\n ：代表换行符\\t ：代表制表符\\\\ ：代表\\本身\\^ ......  ：代表匹配这字符本身\n\n标准字符集合12345678910111213标准字符集合：能够与多种字符匹配的表达式注意区分大小写，大写是相反的意思\\d ：任意一个数字，0～9中的任意一个\\w：任意一个字母或者下划线或者汉字，也就是A～Z，a～z，0～9中的任意一个\\s ：包括空格，制表符，换行符等空白符中的任意一个。.   ：小数点可以匹配任意一个字符\n\n自定义字符集合1234567891011自定义字符集合：[ ]方括号匹配方式，能够匹配方括号中任意一个字符[ab5@]： 匹配方括号中的任意一个字符[^abc]： 匹配除了abc以外的任意一个字符[f-k]： 匹配“f”-“k”之间的任意一个字符[^A-F0-3]： 匹配非A-F和非0-3的任意一个字符\n\n修饰匹配次数的特殊符号1234567891011121314151617修饰匹配次数的特殊符号&#123;n&#125;： 表达式重复n次&#123;m，n&#125;： 表达式至少重复m次，最多重复n次&#123;m，&#125;： 表达式至少重复m次？： 匹配表达式0次或者1次，相当于&#123;0,1&#125; + ： 表达式至少出现1次，相当于&#123;1,&#125; *  ： 表达式不出现或者出现任意次，相当于&#123;0,&#125; 匹配次数中的贪婪模式，（匹配字符愈多愈好，默认） 匹配次数中的非贪婪模式（匹配字符越少越好，修饰匹配次数的特殊符号后再加上一个“？“号）。例子：\\d&#123;2,4&#125;?，这样就将模式改为非贪婪\n\n字符边界12345字符边界（本组标记匹配的不是字符而是位置，符合某种条件的位置）^： 与字符串开始的位置匹配（以一行来算）$： 与字符串结束的地方匹配\n\njava中使用正则表达式示例12345678910111213141516171819202122232425public class TestRegex &#123;      public static void main(String []args)      &#123;          //Pattern p = Pattern.compile(\"^\\\\d&#123;4&#125;\");  //在java中的反斜杠要用两个前面一个转义，因为\\d中的\\做反义用          Pattern p = Pattern.compile(\"(\\\\d&#123;4&#125;)([a-z]&#123;2&#125;)\");          Matcher m = p.matcher(\"asdfsadfsafd2342314asdfsadf2342asdfsaf\");                    System.out.println(m.matches());        //匹配整个目标字符串          System.out.println(m.find());           //查找字符串                    List&lt;String&gt; list = new ArrayList&lt;String&gt;();        //用来存储找到的group          while(m.find())                     //m.find()找到一个后就去找下一个了          &#123;              System.out.println(m.group());      //group(),group(0)的作用是一样的              System.out.println(m.group(0));              System.out.println(m.group(1));              System.out.println(m.group(2));     //如果写3的话会超出范围              list.add(m.group());          &#125;                    String []str = \"aa33fdf55cc\".split(\"\\\\d&#123;2&#125;\");       //按照两个整数来切分          String str2 =\"asd2dsfdfds\".replaceAll(\"\\\\ds\", \"**\");        //将ds替换掉，生成新的字符串，因为前面是常量不可变          System.out.println(\"asdfsdf\".matches(\"\\\\w+\"));      //匹配字符串      &#125;  &#125;\n\n总结本文只列出了正则表达式的基本使用方法，能够进行一些基本的处理了， 还有更加高级的语法有兴趣可以点这里\n","dateCreated":"2014-08-13T17:21:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2014-08-13T17:21:00+08:00","description":"\n前言正则表达式使用单个字符串来描述、匹配一系列符合某个句法规则的字符串。在很多文本编辑器里，正则表达式通常被用来检索、替换那些符合某个模式的文本，许多程序设计语言都支持利用正则表达式进行字符串操作，因此正则表达式还是非常强大的，它对于一些文本的处理非常简洁从而能有效缩短代码的长度。","headline":"正则表达式基础","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2014/08/13/正则表达式基础/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2014/08/13/正则表达式基础/","keywords":"java, 正则表达式"}</script>
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://weibo.com/3868391086/profile?topnav=1&wvr=6","https://www.facebook.com/zhang.zale","assets/love/index.html"],"image":"avatar.jpg"},"articleBody":"\n\n\n\n\n前言正则表达式使用单个字符串来描述、匹配一系列符合某个句法规则的字符串。在很多文本编辑器里，正则表达式通常被用来检索、替换那些符合某个模式的文本，许多程序设计语言都支持利用正则表达式进行字符串操作，因此正则表达式还是非常强大的，它对于一些文本的处理非常简洁从而能有效缩短代码的长度。\n简单的转义字符123456789101112普通字符：字母，数字，汉子，下划线以及没有特殊定义的标点符号都是“普通字符”。   表达式中的普通字符，在匹配一个字符串的时候，匹配与之相同的一个字符简单的转义字符：\\n ：代表换行符\\t ：代表制表符\\\\ ：代表\\本身\\^ ......  ：代表匹配这字符本身\n\n标准字符集合12345678910111213标准字符集合：能够与多种字符匹配的表达式注意区分大小写，大写是相反的意思\\d ：任意一个数字，0～9中的任意一个\\w：任意一个字母或者下划线或者汉字，也就是A～Z，a～z，0～9中的任意一个\\s ：包括空格，制表符，换行符等空白符中的任意一个。.   ：小数点可以匹配任意一个字符\n\n自定义字符集合1234567891011自定义字符集合：[ ]方括号匹配方式，能够匹配方括号中任意一个字符[ab5@]： 匹配方括号中的任意一个字符[^abc]： 匹配除了abc以外的任意一个字符[f-k]： 匹配“f”-“k”之间的任意一个字符[^A-F0-3]： 匹配非A-F和非0-3的任意一个字符\n\n修饰匹配次数的特殊符号1234567891011121314151617修饰匹配次数的特殊符号&#123;n&#125;： 表达式重复n次&#123;m，n&#125;： 表达式至少重复m次，最多重复n次&#123;m，&#125;： 表达式至少重复m次？： 匹配表达式0次或者1次，相当于&#123;0,1&#125; + ： 表达式至少出现1次，相当于&#123;1,&#125; *  ： 表达式不出现或者出现任意次，相当于&#123;0,&#125; 匹配次数中的贪婪模式，（匹配字符愈多愈好，默认） 匹配次数中的非贪婪模式（匹配字符越少越好，修饰匹配次数的特殊符号后再加上一个“？“号）。例子：\\d&#123;2,4&#125;?，这样就将模式改为非贪婪\n\n字符边界12345字符边界（本组标记匹配的不是字符而是位置，符合某种条件的位置）^： 与字符串开始的位置匹配（以一行来算）$： 与字符串结束的地方匹配\n\njava中使用正则表达式示例12345678910111213141516171819202122232425public class TestRegex &#123;      public static void main(String []args)      &#123;          //Pattern p = Pattern.compile(\"^\\\\d&#123;4&#125;\");  //在java中的反斜杠要用两个前面一个转义，因为\\d中的\\做反义用          Pattern p = Pattern.compile(\"(\\\\d&#123;4&#125;)([a-z]&#123;2&#125;)\");          Matcher m = p.matcher(\"asdfsadfsafd2342314asdfsadf2342asdfsaf\");                    System.out.println(m.matches());        //匹配整个目标字符串          System.out.println(m.find());           //查找字符串                    List&lt;String&gt; list = new ArrayList&lt;String&gt;();        //用来存储找到的group          while(m.find())                     //m.find()找到一个后就去找下一个了          &#123;              System.out.println(m.group());      //group(),group(0)的作用是一样的              System.out.println(m.group(0));              System.out.println(m.group(1));              System.out.println(m.group(2));     //如果写3的话会超出范围              list.add(m.group());          &#125;                    String []str = \"aa33fdf55cc\".split(\"\\\\d&#123;2&#125;\");       //按照两个整数来切分          String str2 =\"asd2dsfdfds\".replaceAll(\"\\\\ds\", \"**\");        //将ds替换掉，生成新的字符串，因为前面是常量不可变          System.out.println(\"asdfsdf\".matches(\"\\\\w+\"));      //匹配字符串      &#125;  &#125;\n\n总结本文只列出了正则表达式的基本使用方法，能够进行一些基本的处理了， 还有更加高级的语法有兴趣可以点这里\n","dateCreated":"2014-08-13T17:21:00+08:00","dateModified":"2019-08-20T21:12:36+08:00","datePublished":"2014-08-13T17:21:00+08:00","description":"","headline":"正则表达式基础","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2014/08/13/正则表达式基础/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://weibo.com/3868391086/profile?topnav=1&wvr=6","https://www.facebook.com/zhang.zale","assets/love/index.html"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2014/08/13/正则表达式基础/","keywords":"java, 正则表达式"}</script>
     <meta name="description" content="正则表达式基础及java的使用">
 <meta name="keywords" content="java,正则表达式">
 <meta property="og:type" content="blog">
@@ -23,7 +23,7 @@
 <meta property="og:description" content="正则表达式基础及java的使用">
 <meta property="og:locale" content="zh-cn">
 <meta property="og:image" content="http://zhangliukun.cn/image/regex%E7%A4%BA%E4%BE%8B.jpg">
-<meta property="og:updated_time" content="2019-08-20T12:14:42.857Z">
+<meta property="og:updated_time" content="2019-08-20T13:12:36.591Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="正则表达式基础">
 <meta name="twitter:description" content="正则表达式基础及java的使用">
@@ -194,10 +194,10 @@
             
                 <li class="sidebar-button">
                     
-                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                        <a  class="sidebar-button-link " href="https://weibo.com/3868391086/profile?topnav=1&wvr=6" target="_blank" rel="noopener" title="Weibo">
                     
-                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Twitter</span>
+                        <i class="sidebar-button-icon fab fa-weibo" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Weibo</span>
                     </a>
             </li>
             
@@ -219,18 +219,6 @@
                     
                         <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
                         <span class="sidebar-button-desc">Love</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a  class="sidebar-button-link "
-                             href="/mailto"
-                            title="邮箱"
-                        >
-                    
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">邮箱</span>
                     </a>
             </li>
             
@@ -276,9 +264,12 @@
     
     <div class="post-content markdown">
         <div class="main-content-wrap">
-            <p><img src="/image/regex%E7%A4%BA%E4%BE%8B.jpg" alt="regex"></p>
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>正则表达式使用单个字符串来描述、匹配一系列符合某个句法规则的字符串。在很多文本编辑器里，正则表达式通常被用来检索、替换那些符合某个模式的文本，<br>许多程序设计语言都支持利用正则表达式进行字符串操作，因此正则表达式还是非常强大的，它对于一些文本的处理非常简洁从而能有效缩短代码的长度。</p>
+            <h1 id="table-of-contents">目录</h1><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#简单的转义字符"><span class="toc-text">简单的转义字符</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#标准字符集合"><span class="toc-text">标准字符集合</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#自定义字符集合"><span class="toc-text">自定义字符集合</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#修饰匹配次数的特殊符号"><span class="toc-text">修饰匹配次数的特殊符号</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#字符边界"><span class="toc-text">字符边界</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#java中使用正则表达式示例"><span class="toc-text">java中使用正则表达式示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-text">总结</span></a></li></ol>
+
 <a id="more"></a>
+
+<p><img src="/image/regex%E7%A4%BA%E4%BE%8B.jpg" alt="regex"></p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>正则表达式使用单个字符串来描述、匹配一系列符合某个句法规则的字符串。在很多文本编辑器里，正则表达式通常被用来检索、替换那些符合某个模式的文本，<br>许多程序设计语言都支持利用正则表达式进行字符串操作，因此正则表达式还是非常强大的，它对于一些文本的处理非常简洁从而能有效缩短代码的长度。</p>
 <h2 id="简单的转义字符"><a href="#简单的转义字符" class="headerlink" title="简单的转义字符"></a>简单的转义字符</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">普通字符：字母，数字，汉子，下划线以及没有特殊定义的标点符号都是“普通字符”。   </span><br><span class="line">表达式中的普通字符，在匹配一个字符串的时候，匹配与之相同的一个字符</span><br><span class="line"></span><br><span class="line">简单的转义字符：</span><br><span class="line"></span><br><span class="line">\n ：代表换行符</span><br><span class="line"></span><br><span class="line">\t ：代表制表符</span><br><span class="line"></span><br><span class="line">\\ ：代表\本身</span><br><span class="line"></span><br><span class="line">\^ ......  ：代表匹配这字符本身</span><br></pre></td></tr></table></figure>
 
 <h2 id="标准字符集合"><a href="#标准字符集合" class="headerlink" title="标准字符集合"></a>标准字符集合</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">标准字符集合：</span><br><span class="line"></span><br><span class="line">能够与多种字符匹配的表达式</span><br><span class="line"></span><br><span class="line">注意区分大小写，大写是相反的意思</span><br><span class="line"></span><br><span class="line">\d ：任意一个数字，0～9中的任意一个</span><br><span class="line"></span><br><span class="line">\w：任意一个字母或者下划线或者汉字，也就是A～Z，a～z，0～9中的任意一个</span><br><span class="line"></span><br><span class="line">\s ：包括空格，制表符，换行符等空白符中的任意一个。</span><br><span class="line"></span><br><span class="line">.   ：小数点可以匹配任意一个字符</span><br></pre></td></tr></table></figure>
@@ -393,7 +384,7 @@
         
         <li class="post-action">
             
-                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+                <a class="post-action-btn btn btn--default" href="#table-of-contents" aria-label="目录">
             
                 <i class="fa fa-list" aria-hidden="true"></i>
             </a>
@@ -505,7 +496,7 @@
         
         <li class="post-action">
             
-                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+                <a class="post-action-btn btn btn--default" href="#table-of-contents" aria-label="目录">
             
                 <i class="fa fa-list" aria-hidden="true"></i>
             </a>

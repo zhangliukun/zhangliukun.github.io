@@ -13,7 +13,7 @@
         <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
     
     
-    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"简介android studio自从1.3以后开始对android的ndk进行支持了，所以现在基本android开发可以废弃eclipse了，毕竟跟着官方的趋势走肯定不会错的。对于开发环境搭建这种事永远都是开始难后面，只要参照一个正确的教程就能事半功倍，对于opencv的在android的搭建教程官网还是停留在eclipse上面，现在我还没在官网找到关于如何在android studio上的官方教程，官方给的实例也是eclipse上面的。其实，移过来也并不麻烦。\n工具\nandroid studio 1.5＋（android studio最新版的也挺稳定的）\nandroid NDK（在新的版本都是在studio中下载至SDK中了，不用另外下载了）\nopencv\ngradle\n\n\n\n环境变量配置为了开发方便，强烈建议将环境变量配置好，我的系统是OS X，我觉得做android开发最好不要在win平台上进行开发，配置之类太麻烦。像我的环境变量配置的话一般在.bashrc中alias起别名搞定，我觉得这样配置环境变量比较清楚。当然也可以定义PATH。\nopencv-android-sdk关于opencv for android，下载下来以后可以看到里面的sdk目录下面有java和native两个文件夹，说明opencv的使用方式有两种，java代码调用和native方法调用，两种的运行效率差不多的，就是看你个人熟悉哪种语言了，个人觉得可能对于一些移植项目来说用native比较方便一些，对于比较熟悉java的开发人员来说就用java代码好了。\n另外，还有sample中可以看到的是官方提供的基于eclipse的实例项目代码。\n项目构建项目结构\n项目主要分为两个模块，一个是你新建的自己的模块，一个是opencv的项目模块，opencv的项目模块是作为你自己的项目模块的一个依赖，opencv的模块就是把你下载的opencv－android中的java整个复制进来，新建一个gradle构建脚本，注意版本要和app中的一致。当然如果你不需要用java开发opencv的话也可以不复制过来而只使用native代码开发也可以。这里为了方便所以将java代码复制进来了。\n在app模块中新建一个jni目录，这里存放你的cpp代码和Android.mk文件，具体也不详述，想回顾一下可以看android NDK入门\n再新建一个jniLibs目录，用来存放cpp进行build完成以后的so文件，另外，需要将opencv中相应的libopencv-java3.so拷贝进来。在程序静态代码块中加载这个so文件和自己定义的so。\n项目主要文件配置\n在setting.gradle中是这样的\n\n1include ':app', ':library'\n\n\napp的build.gradle\n\n12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849apply plugin: 'com.android.application'android &#123;    compileSdkVersion 23    buildToolsVersion \"23.0.2\"    defaultConfig &#123;        applicationId \"zalezone.imagemagic\"        minSdkVersion 19        targetSdkVersion 23        versionCode 1        versionName \"1.0\"    &#125;    // begin    sourceSets.main &#123;        jni.srcDirs = [] //disable automatic ndk-build call    &#125;    task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') &#123;        commandLine \"/Users/zale/Library/Android/sdk/ndk-bundle/ndk-build\",                'NDK_PROJECT_PATH=build/intermediates/ndk',                'NDK_LIBS_OUT=src/main/jniLibs',                'APP_BUILD_SCRIPT=src/main/jni/Android.mk',                'NDK_APPLICATION_MK=src/main/jni/Application.mk'    &#125;    tasks.withType(JavaCompile) &#123;        compileTask -&gt; compileTask.dependsOn ndkBuild    &#125;    buildTypes &#123;        release &#123;            minifyEnabled false            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'        &#125;    &#125;&#125;dependencies &#123;    compile fileTree(dir: 'libs', include: ['*.jar'])    testCompile 'junit:junit:4.12'    compile project(':opencv3-java')    compile 'com.android.support:appcompat-v7:23.1.1'&#125;\n\n\nopencv 模块的build.gradle\n\n12345678910111213141516171819apply plugin: 'com.android.library'android &#123;    compileSdkVersion 23    buildToolsVersion \"23.0.2\"    defaultConfig &#123;        minSdkVersion 19        targetSdkVersion 23        versionCode 1        versionName \"1.0\"    &#125;    buildTypes &#123;        release &#123;            minifyEnabled false            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'        &#125;    &#125;&#125;\n\n注意，里面的sdk version需要一样，不然编译不会通过的。其中的gradle脚本中将默认的jni目录置为空了，然后在脚本中对cpp文件进行编译\n\njni中的Android.mk\n\n12345678910111213141516LOCAL_PATH := $(call my-dir)include $(CLEAR_VARS)#opencvOPENCVROOT:= /Users/zale/MyFileRoot/software_source/OpenCV-android-sdkOPENCV_CAMERA_MODULES:=onOPENCV_INSTALL_MODULES:=onOPENCV_LIB_TYPE:=SHAREDinclude $&#123;OPENCVROOT&#125;/sdk/native/jni/OpenCV.mkLOCAL_SRC_FILES := zalezone_imagemagic_opencv_grayprocess_ImageProc.cppLOCAL_LDLIBS += -llogLOCAL_MODULE := ProcLibinclude $(BUILD_SHARED_LIBRARY)\n\n\njni中的Application.mk\n\n1234APP_STL := gnustl_staticAPP_CPPFLAGS := -frtti -fexceptionsAPP_ABI := armeabi-v7aAPP_PLATFORM := android-16\n\n项目测试运行gradle脚本，正常情况下会发现自动生成了一个自己所定义的一个so文件，这就是我嘛在java代码中所需要加载的so库。像平常的灰度处理就可以通过cpp写，通过传入图片的矩阵数据进行native方法的灰度处理以后再返回给java代码进行显示。\n如果项目出现了编译错误，根据出错信息好好分析一下，搜索一下一般都能解决问题，祝好运！\n其他配置对于native代码头文件的自动生成方法，以前都是通过命令行到达相应的文件目录下面以后手动进行javah 然后生成我们所需要的头文件，这样的操作比较麻烦，现在我们可以借助android studio提供的工具来方便的完成，进入Tools-&gt;External tools,自己新建一个tool，用来为外部命令javah进行配置，这样我们如果要生成本地代码的头文件的话只要通过自己新建的tool来快速生成，具体配置如下图所示\n附注关于android studio中的NDK配置的话还有另一种方法，现在用的比较多的都是我上面所介绍的配置方式，但是gradle还有一个试验性的版本，这个版本对于gradle的语法也有了较大的更改，对于NDK的配置也融合进了gradle脚本，所以就无需Android.mk文件了，但是毕竟这个还是试验性版本，具体大规模应用应该还有一段时间，所以也不去深究了，现在还是用原来的方式比较好。\n推荐链接\nandroid-ndk-and-opencv-development-with-android-studio\nGradle for Android\nandroid-ndk-and-opencv-development\n\n","dateCreated":"2016-01-18T00:09:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2016-01-18T00:09:00+08:00","description":"简介android studio自从1.3以后开始对android的ndk进行支持了，所以现在基本android开发可以废弃eclipse了，毕竟跟着官方的趋势走肯定不会错的。对于开发环境搭建这种事永远都是开始难后面，只要参照一个正确的教程就能事半功倍，对于opencv的在android的搭建教程官网还是停留在eclipse上面，现在我还没在官网找到关于如何在android studio上的官方教程，官方给的实例也是eclipse上面的。其实，移过来也并不麻烦。\n工具\nandroid studio 1.5＋（android studio最新版的也挺稳定的）\nandroid NDK（在新的版本都是在studio中下载至SDK中了，不用另外下载了）\nopencv\ngradle\n","headline":"android opencv 环境搭建","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2016/01/18/android-opencv环境搭建/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2016/01/18/android-opencv环境搭建/","keywords":"android, opencv"}</script>
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://weibo.com/3868391086/profile?topnav=1&wvr=6","https://www.facebook.com/zhang.zale","assets/love/index.html"],"image":"avatar.jpg"},"articleBody":"\n\n\n\n简介android studio自从1.3以后开始对android的ndk进行支持了，所以现在基本android开发可以废弃eclipse了，毕竟跟着官方的趋势走肯定不会错的。对于开发环境搭建这种事永远都是开始难后面，只要参照一个正确的教程就能事半功倍，对于opencv的在android的搭建教程官网还是停留在eclipse上面，现在我还没在官网找到关于如何在android studio上的官方教程，官方给的实例也是eclipse上面的。其实，移过来也并不麻烦。\n工具\nandroid studio 1.5＋（android studio最新版的也挺稳定的）\nandroid NDK（在新的版本都是在studio中下载至SDK中了，不用另外下载了）\nopencv\ngradle\n\n环境变量配置为了开发方便，强烈建议将环境变量配置好，我的系统是OS X，我觉得做android开发最好不要在win平台上进行开发，配置之类太麻烦。像我的环境变量配置的话一般在.bashrc中alias起别名搞定，我觉得这样配置环境变量比较清楚。当然也可以定义PATH。\nopencv-android-sdk关于opencv for android，下载下来以后可以看到里面的sdk目录下面有java和native两个文件夹，说明opencv的使用方式有两种，java代码调用和native方法调用，两种的运行效率差不多的，就是看你个人熟悉哪种语言了，个人觉得可能对于一些移植项目来说用native比较方便一些，对于比较熟悉java的开发人员来说就用java代码好了。\n另外，还有sample中可以看到的是官方提供的基于eclipse的实例项目代码。\n项目构建项目结构\n项目主要分为两个模块，一个是你新建的自己的模块，一个是opencv的项目模块，opencv的项目模块是作为你自己的项目模块的一个依赖，opencv的模块就是把你下载的opencv－android中的java整个复制进来，新建一个gradle构建脚本，注意版本要和app中的一致。当然如果你不需要用java开发opencv的话也可以不复制过来而只使用native代码开发也可以。这里为了方便所以将java代码复制进来了。\n在app模块中新建一个jni目录，这里存放你的cpp代码和Android.mk文件，具体也不详述，想回顾一下可以看android NDK入门\n再新建一个jniLibs目录，用来存放cpp进行build完成以后的so文件，另外，需要将opencv中相应的libopencv-java3.so拷贝进来。在程序静态代码块中加载这个so文件和自己定义的so。\n项目主要文件配置\n在setting.gradle中是这样的\n\n1include ':app', ':library'\n\n\napp的build.gradle\n\n12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849apply plugin: 'com.android.application'android &#123;    compileSdkVersion 23    buildToolsVersion \"23.0.2\"    defaultConfig &#123;        applicationId \"zalezone.imagemagic\"        minSdkVersion 19        targetSdkVersion 23        versionCode 1        versionName \"1.0\"    &#125;    // begin    sourceSets.main &#123;        jni.srcDirs = [] //disable automatic ndk-build call    &#125;    task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') &#123;        commandLine \"/Users/zale/Library/Android/sdk/ndk-bundle/ndk-build\",                'NDK_PROJECT_PATH=build/intermediates/ndk',                'NDK_LIBS_OUT=src/main/jniLibs',                'APP_BUILD_SCRIPT=src/main/jni/Android.mk',                'NDK_APPLICATION_MK=src/main/jni/Application.mk'    &#125;    tasks.withType(JavaCompile) &#123;        compileTask -&gt; compileTask.dependsOn ndkBuild    &#125;    buildTypes &#123;        release &#123;            minifyEnabled false            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'        &#125;    &#125;&#125;dependencies &#123;    compile fileTree(dir: 'libs', include: ['*.jar'])    testCompile 'junit:junit:4.12'    compile project(':opencv3-java')    compile 'com.android.support:appcompat-v7:23.1.1'&#125;\n\n\nopencv 模块的build.gradle\n\n12345678910111213141516171819apply plugin: 'com.android.library'android &#123;    compileSdkVersion 23    buildToolsVersion \"23.0.2\"    defaultConfig &#123;        minSdkVersion 19        targetSdkVersion 23        versionCode 1        versionName \"1.0\"    &#125;    buildTypes &#123;        release &#123;            minifyEnabled false            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'        &#125;    &#125;&#125;\n\n注意，里面的sdk version需要一样，不然编译不会通过的。其中的gradle脚本中将默认的jni目录置为空了，然后在脚本中对cpp文件进行编译\n\njni中的Android.mk\n\n12345678910111213141516LOCAL_PATH := $(call my-dir)include $(CLEAR_VARS)#opencvOPENCVROOT:= /Users/zale/MyFileRoot/software_source/OpenCV-android-sdkOPENCV_CAMERA_MODULES:=onOPENCV_INSTALL_MODULES:=onOPENCV_LIB_TYPE:=SHAREDinclude $&#123;OPENCVROOT&#125;/sdk/native/jni/OpenCV.mkLOCAL_SRC_FILES := zalezone_imagemagic_opencv_grayprocess_ImageProc.cppLOCAL_LDLIBS += -llogLOCAL_MODULE := ProcLibinclude $(BUILD_SHARED_LIBRARY)\n\n\njni中的Application.mk\n\n1234APP_STL := gnustl_staticAPP_CPPFLAGS := -frtti -fexceptionsAPP_ABI := armeabi-v7aAPP_PLATFORM := android-16\n\n项目测试运行gradle脚本，正常情况下会发现自动生成了一个自己所定义的一个so文件，这就是我嘛在java代码中所需要加载的so库。像平常的灰度处理就可以通过cpp写，通过传入图片的矩阵数据进行native方法的灰度处理以后再返回给java代码进行显示。\n如果项目出现了编译错误，根据出错信息好好分析一下，搜索一下一般都能解决问题，祝好运！\n其他配置对于native代码头文件的自动生成方法，以前都是通过命令行到达相应的文件目录下面以后手动进行javah 然后生成我们所需要的头文件，这样的操作比较麻烦，现在我们可以借助android studio提供的工具来方便的完成，进入Tools-&gt;External tools,自己新建一个tool，用来为外部命令javah进行配置，这样我们如果要生成本地代码的头文件的话只要通过自己新建的tool来快速生成，具体配置如下图所示\n附注关于android studio中的NDK配置的话还有另一种方法，现在用的比较多的都是我上面所介绍的配置方式，但是gradle还有一个试验性的版本，这个版本对于gradle的语法也有了较大的更改，对于NDK的配置也融合进了gradle脚本，所以就无需Android.mk文件了，但是毕竟这个还是试验性版本，具体大规模应用应该还有一段时间，所以也不去深究了，现在还是用原来的方式比较好。\n推荐链接\nandroid-ndk-and-opencv-development-with-android-studio\nGradle for Android\nandroid-ndk-and-opencv-development\n\n","dateCreated":"2016-01-18T00:09:00+08:00","dateModified":"2019-08-20T21:13:24+08:00","datePublished":"2016-01-18T00:09:00+08:00","description":"","headline":"android opencv 环境搭建","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2016/01/18/android-opencv环境搭建/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://weibo.com/3868391086/profile?topnav=1&wvr=6","https://www.facebook.com/zhang.zale","assets/love/index.html"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2016/01/18/android-opencv环境搭建/","keywords":"android, opencv"}</script>
     <meta name="description" content="android opencv 环境搭建">
 <meta name="keywords" content="android,opencv">
 <meta property="og:type" content="blog">
@@ -24,7 +24,7 @@
 <meta property="og:locale" content="zh-cn">
 <meta property="og:image" content="http://zhangliukun.cn/image/ndk_project.png">
 <meta property="og:image" content="http://zhangliukun.cn/image/javah_as.png">
-<meta property="og:updated_time" content="2019-08-20T12:14:42.841Z">
+<meta property="og:updated_time" content="2019-08-20T13:13:24.377Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="android opencv 环境搭建">
 <meta name="twitter:description" content="android opencv 环境搭建">
@@ -195,10 +195,10 @@
             
                 <li class="sidebar-button">
                     
-                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                        <a  class="sidebar-button-link " href="https://weibo.com/3868391086/profile?topnav=1&wvr=6" target="_blank" rel="noopener" title="Weibo">
                     
-                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Twitter</span>
+                        <i class="sidebar-button-icon fab fa-weibo" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Weibo</span>
                     </a>
             </li>
             
@@ -220,18 +220,6 @@
                     
                         <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
                         <span class="sidebar-button-desc">Love</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a  class="sidebar-button-link "
-                             href="/mailto"
-                            title="邮箱"
-                        >
-                    
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">邮箱</span>
                     </a>
             </li>
             
@@ -277,15 +265,17 @@
     
     <div class="post-content markdown">
         <div class="main-content-wrap">
-            <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>android studio自从1.3以后开始对android的ndk进行支持了，所以现在基本android开发可以废弃eclipse了，毕竟跟着官方的趋势走肯定不会错的。对于开发环境搭建这种事永远都是开始难后面，只要参照一个正确的教程就能事半功倍，对于opencv的在android的搭建教程官网还是停留在eclipse上面，现在我还没在官网找到关于如何在android studio上的官方教程，官方给的实例也是eclipse上面的。其实，移过来也并不麻烦。</p>
+            <h1 id="table-of-contents">目录</h1><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#简介"><span class="toc-text">简介</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#工具"><span class="toc-text">工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#环境变量配置"><span class="toc-text">环境变量配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#opencv-android-sdk"><span class="toc-text">opencv-android-sdk</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#项目构建"><span class="toc-text">项目构建</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#项目结构"><span class="toc-text">项目结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#项目主要文件配置"><span class="toc-text">项目主要文件配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#项目测试"><span class="toc-text">项目测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#其他配置"><span class="toc-text">其他配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#附注"><span class="toc-text">附注</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#推荐链接"><span class="toc-text">推荐链接</span></a></li></ol></li></ol>
+
+<a id="more"></a>
+
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>android studio自从1.3以后开始对android的ndk进行支持了，所以现在基本android开发可以废弃eclipse了，毕竟跟着官方的趋势走肯定不会错的。对于开发环境搭建这种事永远都是开始难后面，只要参照一个正确的教程就能事半功倍，对于opencv的在android的搭建教程官网还是停留在eclipse上面，现在我还没在官网找到关于如何在android studio上的官方教程，官方给的实例也是eclipse上面的。其实，移过来也并不麻烦。</p>
 <h2 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h2><ul>
 <li>android studio 1.5＋（android studio最新版的也挺稳定的）</li>
 <li>android NDK（在新的版本都是在studio中下载至SDK中了，不用另外下载了）</li>
 <li><a href="http://docs.opencv.org/" target="_blank" rel="noopener">opencv</a></li>
 <li><a href="http://segmentfault.com/a/1190000004229002" target="_blank" rel="noopener">gradle</a></li>
 </ul>
-<a id="more"></a>
-
 <h2 id="环境变量配置"><a href="#环境变量配置" class="headerlink" title="环境变量配置"></a>环境变量配置</h2><p>为了开发方便，强烈建议将环境变量配置好，我的系统是OS X，我觉得做android开发最好不要在win平台上进行开发，配置之类太麻烦。像我的环境变量配置的话一般在.bashrc中alias起别名搞定，我觉得这样配置环境变量比较清楚。当然也可以定义PATH。</p>
 <h2 id="opencv-android-sdk"><a href="#opencv-android-sdk" class="headerlink" title="opencv-android-sdk"></a>opencv-android-sdk</h2><p>关于opencv for android，下载下来以后可以看到里面的sdk目录下面有java和native两个文件夹，说明opencv的使用方式有两种，java代码调用和native方法调用，两种的运行效率差不多的，就是看你个人熟悉哪种语言了，个人觉得可能对于一些移植项目来说用native比较方便一些，对于比较熟悉java的开发人员来说就用java代码好了。</p>
 <p>另外，还有sample中可以看到的是官方提供的基于eclipse的实例项目代码。</p>
@@ -432,7 +422,7 @@
         
         <li class="post-action">
             
-                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+                <a class="post-action-btn btn btn--default" href="#table-of-contents" aria-label="目录">
             
                 <i class="fa fa-list" aria-hidden="true"></i>
             </a>
@@ -547,7 +537,7 @@
         
         <li class="post-action">
             
-                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+                <a class="post-action-btn btn btn--default" href="#table-of-contents" aria-label="目录">
             
                 <i class="fa fa-list" aria-hidden="true"></i>
             </a>

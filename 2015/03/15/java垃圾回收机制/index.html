@@ -13,7 +13,7 @@
         <link rel="icon" href="http://zhangliukun.cn/assets/images/favicon.jpg">
     
     
-    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg"},"articleBody":"简介垃圾回收机制主要完成下面两件事情。\n\n跟踪并监控每个java对象，当某个对象处于不可达状态是，回收所占用内存\n清理内存分配，回收过程中产生的内存碎片\n\n\n垃圾回收机制需要完成以上两个工作，所以工作量不算太小，因此垃圾回收算法成为限制java程序运行效率的重要因素。一个高效的垃圾回收机制既能保证垃圾回收的快速运行，避免内存的分配回收成为性能瓶颈以及导致应用程序产生停顿。\n垃圾回收器的基本算法可供选择的设计\n串行(Serial)回收和并向(Parallel)回收：串行回收就是不管有多少个CPU，都只用一个CPU来执行垃圾回收操作，而并行回收就是吧整个工作拆分给多个CPU进行回收。效率高但是复杂度增加，另有一些副作用入内存碎片增加。\n并发执行(Concurrent)和应用程序停止(Stop-the-world)：(S)这种方式在回收时会导致应用程序暂停。并发执行的垃圾回收虽然不会导致应用程序暂停，但是由于并发执行垃圾回收需要解决和应用程序的执行冲突，因此并发执行的开销要高并且也需要更多的堆内存。\n压缩(Compacting)/不压缩(Non-compacting)和复制(Copying)：为了减少内存碎片，支持压缩的垃圾回收器会吧所有的活的对象搬到一起，然后将之前占用的内存全部回收，不要锁的垃圾回收器只是回收内存，这样回收来的内存不可能是连续的，会有较多的内存碎片，不压缩的机制回收快但分配内存时就会慢，而且不能解决内存碎片的问题。复制垃圾回收机制会将所有可达的对象复制到另一块内存中，这种方式的优点是垃圾回收时不会产生内存碎片，缺点是需要复制数据和额外的内存。\n\n具体的回收方式\n复制：将对内存分为两份，从根处开始遍历每个关联的可达对象，将空间A中的可达对象复制到B中，然后回收整个A。这种方式遍历空间的成本小，但是需要巨大的空间和内存\n标记清除：也就是不压缩回收方式，垃圾回收器先从根开始访问所有的可达对象，并将它们标记为可达状态，然后遍历一次整个内存区域，对所有的没有标记为可达对象进行回收处理。这种方式无需大规模复制操作，且内存利用率高。但是需要两次遍历内存空间，遍历成本大，造成应用程序暂停的时间随着堆空间的大小线性增大。而且容易产生内存碎片。\n标记压缩：压缩的回收方式，这种方式在上一种的基础上会另外将标记的活动对象搬迁到一起，也称为内存压缩，减少了内存碎片。\n\n堆内存的分代回收可以看出上述的方式都各有利弊，现行的来及回收器采用分代的方式来采用不同的回收设计。分代的基本思路是根据对象生存的时间长短，把堆内存分为三个代：Young,Old,Permanent\n这种“分代回收“基于如下两个事实：\n\n绝大多数的对象不会被长时间引用，这些对象在其Young期间就会被回收。\n生存时间长的对象和短的对象之间很少存在相互引用的情况。\n\n上面两种情况不仅在java中如此，在其他面向对象的编程语言中也是这样。\n下面介绍一下三个代：\n\nYoung代: 对于Young代采用复制算法只需遍历那些处于可达状态的对象，而这些对象的数量比较少，复制成本也不大，因此能充分发挥复制算法的优点。\nOld代: 如果Young代中的对象经过数次垃圾回收依然没有被回收掉，就会被转移到Old代，Old代的空间比Young代的空间更大。\nPermanent代: Permanent代主要用于装载Class，方法等信息，默认为64M，垃圾回收器通常不会回收这里面的对象。\n\n常见的垃圾回收器这里列举一些常见的垃圾回收器，考虑到篇幅就只列一下名字好了。\n\n串行回收器(Serial Collector)\n并行回收器(Parallel Collector)\n并行压缩回收器(Parallel Compacting Collector)\n并发标识-清理(Mark-Sweep)回收器(CMS)\n\n内存管理小技巧更好的管理java虚拟机的内存才能提高java程序的运行性能。下面列出一些小技巧：\n\n尽量使用直接量  ：当需要使用基本类型的数据时，不应该采用new的方式来创建对象，而应该用直接量来创建，如String str = ”test“,这样的话JVM会将这个字符串放在缓冲池中，如果用new的话不仅会放在缓冲池中还会在堆内存中开辟一个数组来保存它。\n使用StirngBuilder和StringBuffer进行字符串连接  : 这个的话就是减少运行时生成的临时变量。\n尽早释放无用的对象的引用  ： 大部分时候方法的局部变量是不需要手动去设置为null的，但是在一些方法后还要运行耗时操作时可能就需要手动去释放了。\n尽量少的使用静态变量  ： 静态变量很有肯能会存入Permanent代，可能会使垃圾回收器不能回收此对象。\n避免在经常调用的方法，循环中创建java对象  ：可能会导致不断地分配内存空间导致程序的性能受到影响。\n缓存经常使用的对象  ：比如缓存一些数据库连接啊之类的。\n尽量不要使用finalize方法  ：这样会家中垃圾回收器的负担，造成程序暂停之类的。\n考虑使用SoftReference ：当内存足够时，它的功能等同与普通引用，当内存不够时，他会牺牲自己，释放引用所引用的对象。\n\n","dateCreated":"2015-03-15T20:45:00+08:00","dateModified":"2019-08-20T20:14:42+08:00","datePublished":"2015-03-15T20:45:00+08:00","description":"简介垃圾回收机制主要完成下面两件事情。\n\n跟踪并监控每个java对象，当某个对象处于不可达状态是，回收所占用内存\n清理内存分配，回收过程中产生的内存碎片\n","headline":"java垃圾回收机制","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2015/03/15/java垃圾回收机制/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://twitter.com/zhang_zale","https://www.facebook.com/zhang.zale","assets/love/index.html","mailto"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2015/03/15/java垃圾回收机制/","keywords":"java, 内存管理"}</script>
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://weibo.com/3868391086/profile?topnav=1&wvr=6","https://www.facebook.com/zhang.zale","assets/love/index.html"],"image":"avatar.jpg"},"articleBody":"\n\n\n简介垃圾回收机制主要完成下面两件事情。\n\n跟踪并监控每个java对象，当某个对象处于不可达状态是，回收所占用内存\n清理内存分配，回收过程中产生的内存碎片\n\n垃圾回收机制需要完成以上两个工作，所以工作量不算太小，因此垃圾回收算法成为限制java程序运行效率的重要因素。一个高效的垃圾回收机制既能保证垃圾回收的快速运行，避免内存的分配回收成为性能瓶颈以及导致应用程序产生停顿。\n垃圾回收器的基本算法可供选择的设计\n串行(Serial)回收和并向(Parallel)回收：串行回收就是不管有多少个CPU，都只用一个CPU来执行垃圾回收操作，而并行回收就是吧整个工作拆分给多个CPU进行回收。效率高但是复杂度增加，另有一些副作用入内存碎片增加。\n并发执行(Concurrent)和应用程序停止(Stop-the-world)：(S)这种方式在回收时会导致应用程序暂停。并发执行的垃圾回收虽然不会导致应用程序暂停，但是由于并发执行垃圾回收需要解决和应用程序的执行冲突，因此并发执行的开销要高并且也需要更多的堆内存。\n压缩(Compacting)/不压缩(Non-compacting)和复制(Copying)：为了减少内存碎片，支持压缩的垃圾回收器会吧所有的活的对象搬到一起，然后将之前占用的内存全部回收，不要锁的垃圾回收器只是回收内存，这样回收来的内存不可能是连续的，会有较多的内存碎片，不压缩的机制回收快但分配内存时就会慢，而且不能解决内存碎片的问题。复制垃圾回收机制会将所有可达的对象复制到另一块内存中，这种方式的优点是垃圾回收时不会产生内存碎片，缺点是需要复制数据和额外的内存。\n\n具体的回收方式\n复制：将对内存分为两份，从根处开始遍历每个关联的可达对象，将空间A中的可达对象复制到B中，然后回收整个A。这种方式遍历空间的成本小，但是需要巨大的空间和内存\n标记清除：也就是不压缩回收方式，垃圾回收器先从根开始访问所有的可达对象，并将它们标记为可达状态，然后遍历一次整个内存区域，对所有的没有标记为可达对象进行回收处理。这种方式无需大规模复制操作，且内存利用率高。但是需要两次遍历内存空间，遍历成本大，造成应用程序暂停的时间随着堆空间的大小线性增大。而且容易产生内存碎片。\n标记压缩：压缩的回收方式，这种方式在上一种的基础上会另外将标记的活动对象搬迁到一起，也称为内存压缩，减少了内存碎片。\n\n堆内存的分代回收可以看出上述的方式都各有利弊，现行的来及回收器采用分代的方式来采用不同的回收设计。分代的基本思路是根据对象生存的时间长短，把堆内存分为三个代：Young,Old,Permanent\n这种“分代回收“基于如下两个事实：\n\n绝大多数的对象不会被长时间引用，这些对象在其Young期间就会被回收。\n生存时间长的对象和短的对象之间很少存在相互引用的情况。\n\n上面两种情况不仅在java中如此，在其他面向对象的编程语言中也是这样。\n下面介绍一下三个代：\n\nYoung代: 对于Young代采用复制算法只需遍历那些处于可达状态的对象，而这些对象的数量比较少，复制成本也不大，因此能充分发挥复制算法的优点。\nOld代: 如果Young代中的对象经过数次垃圾回收依然没有被回收掉，就会被转移到Old代，Old代的空间比Young代的空间更大。\nPermanent代: Permanent代主要用于装载Class，方法等信息，默认为64M，垃圾回收器通常不会回收这里面的对象。\n\n常见的垃圾回收器这里列举一些常见的垃圾回收器，考虑到篇幅就只列一下名字好了。\n\n串行回收器(Serial Collector)\n并行回收器(Parallel Collector)\n并行压缩回收器(Parallel Compacting Collector)\n并发标识-清理(Mark-Sweep)回收器(CMS)\n\n内存管理小技巧更好的管理java虚拟机的内存才能提高java程序的运行性能。下面列出一些小技巧：\n\n尽量使用直接量  ：当需要使用基本类型的数据时，不应该采用new的方式来创建对象，而应该用直接量来创建，如String str = ”test“,这样的话JVM会将这个字符串放在缓冲池中，如果用new的话不仅会放在缓冲池中还会在堆内存中开辟一个数组来保存它。\n使用StirngBuilder和StringBuffer进行字符串连接  : 这个的话就是减少运行时生成的临时变量。\n尽早释放无用的对象的引用  ： 大部分时候方法的局部变量是不需要手动去设置为null的，但是在一些方法后还要运行耗时操作时可能就需要手动去释放了。\n尽量少的使用静态变量  ： 静态变量很有肯能会存入Permanent代，可能会使垃圾回收器不能回收此对象。\n避免在经常调用的方法，循环中创建java对象  ：可能会导致不断地分配内存空间导致程序的性能受到影响。\n缓存经常使用的对象  ：比如缓存一些数据库连接啊之类的。\n尽量不要使用finalize方法  ：这样会家中垃圾回收器的负担，造成程序暂停之类的。\n考虑使用SoftReference ：当内存足够时，它的功能等同与普通引用，当内存不够时，他会牺牲自己，释放引用所引用的对象。\n\n","dateCreated":"2015-03-15T20:45:00+08:00","dateModified":"2019-08-20T21:13:53+08:00","datePublished":"2015-03-15T20:45:00+08:00","description":"","headline":"java垃圾回收机制","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"http://zhangliukun.cn/2015/03/15/java垃圾回收机制/"},"publisher":{"@type":"Organization","name":"zhangliukun","sameAs":["https://github.com/zhangliukun","https://weibo.com/3868391086/profile?topnav=1&wvr=6","https://www.facebook.com/zhang.zale","assets/love/index.html"],"image":"avatar.jpg","logo":{"@type":"ImageObject","url":"avatar.jpg"}},"url":"http://zhangliukun.cn/2015/03/15/java垃圾回收机制/","keywords":"java, 内存管理"}</script>
     <meta name="description" content="java来及回收机制与内存管理">
 <meta name="keywords" content="java,内存管理">
 <meta property="og:type" content="blog">
@@ -22,7 +22,7 @@
 <meta property="og:site_name" content="六锟小站">
 <meta property="og:description" content="java来及回收机制与内存管理">
 <meta property="og:locale" content="zh-cn">
-<meta property="og:updated_time" content="2019-08-20T12:14:42.847Z">
+<meta property="og:updated_time" content="2019-08-20T13:13:53.729Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="java垃圾回收机制">
 <meta name="twitter:description" content="java来及回收机制与内存管理">
@@ -192,10 +192,10 @@
             
                 <li class="sidebar-button">
                     
-                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                        <a  class="sidebar-button-link " href="https://weibo.com/3868391086/profile?topnav=1&wvr=6" target="_blank" rel="noopener" title="Weibo">
                     
-                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Twitter</span>
+                        <i class="sidebar-button-icon fab fa-weibo" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Weibo</span>
                     </a>
             </li>
             
@@ -217,18 +217,6 @@
                     
                         <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
                         <span class="sidebar-button-desc">Love</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a  class="sidebar-button-link "
-                             href="/mailto"
-                            title="邮箱"
-                        >
-                    
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">邮箱</span>
                     </a>
             </li>
             
@@ -274,12 +262,14 @@
     
     <div class="post-content markdown">
         <div class="main-content-wrap">
-            <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>垃圾回收机制主要完成下面两件事情。</p>
+            <h1 id="table-of-contents">目录</h1><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#简介"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#垃圾回收器的基本算法"><span class="toc-text">垃圾回收器的基本算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#可供选择的设计"><span class="toc-text">可供选择的设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#具体的回收方式"><span class="toc-text">具体的回收方式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#堆内存的分代回收"><span class="toc-text">堆内存的分代回收</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#常见的垃圾回收器"><span class="toc-text">常见的垃圾回收器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#内存管理小技巧"><span class="toc-text">内存管理小技巧</span></a></li></ol>
+
+<a id="more"></a>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>垃圾回收机制主要完成下面两件事情。</p>
 <ul>
 <li>跟踪并监控每个java对象，当某个对象处于不可达状态是，回收所占用内存</li>
 <li>清理内存分配，回收过程中产生的内存碎片</li>
 </ul>
-<a id="more"></a>
 <p>垃圾回收机制需要完成以上两个工作，所以工作量不算太小，因此垃圾回收算法成为限制java程序运行效率的重要因素。一个高效的垃圾回收机制既能保证垃圾回收的快速运行，避免内存的分配回收成为性能瓶颈以及导致应用程序产生停顿。</p>
 <h2 id="垃圾回收器的基本算法"><a href="#垃圾回收器的基本算法" class="headerlink" title="垃圾回收器的基本算法"></a>垃圾回收器的基本算法</h2><h3 id="可供选择的设计"><a href="#可供选择的设计" class="headerlink" title="可供选择的设计"></a>可供选择的设计</h3><ul>
 <li><strong><em>串行(Serial)回收和并向(Parallel)回收</em></strong>：串行回收就是不管有多少个CPU，都只用一个CPU来执行垃圾回收操作，而并行回收就是吧整个工作拆分给多个CPU进行回收。效率高但是复杂度增加，另有一些副作用入内存碎片增加。</li>
@@ -426,7 +416,7 @@
         
         <li class="post-action">
             
-                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+                <a class="post-action-btn btn btn--default" href="#table-of-contents" aria-label="目录">
             
                 <i class="fa fa-list" aria-hidden="true"></i>
             </a>
@@ -541,7 +531,7 @@
         
         <li class="post-action">
             
-                <a class="post-action-btn btn btn--default" href="#" aria-label="Nach oben">
+                <a class="post-action-btn btn btn--default" href="#table-of-contents" aria-label="目录">
             
                 <i class="fa fa-list" aria-hidden="true"></i>
             </a>

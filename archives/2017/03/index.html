@@ -185,10 +185,10 @@
             
                 <li class="sidebar-button">
                     
-                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                        <a  class="sidebar-button-link " href="https://weibo.com/3868391086/profile?topnav=1&wvr=6" target="_blank" rel="noopener" title="Weibo">
                     
-                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Twitter</span>
+                        <i class="sidebar-button-icon fab fa-weibo" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Weibo</span>
                     </a>
             </li>
             
@@ -210,18 +210,6 @@
                     
                         <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
                         <span class="sidebar-button-desc">Love</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a  class="sidebar-button-link "
-                             href="/mailto"
-                            title="邮箱"
-                        >
-                    
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">邮箱</span>
                     </a>
             </li>
             
@@ -272,18 +260,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>虚拟机把描述类的数据从 Class 文件加载到内存，并对数据进行<strong>校验</strong>、<strong>转换解析</strong>和<strong>初始化</strong>，最终形成可以被虚拟机直接使用的 Java 类型，这就是虚拟机的<strong>类加载机制</strong>。<br>与那些编译时需要进行链接的语言不同，Java 里面类型的加载、链接和初始化过程都是在程序运行期间完成的，Java 的动态扩展语言特性就是依赖运行期动态加载和动态链接这个特点实现的。用户可以通过 Java 预定义的和自定义的类加载器来使用运行时从网络或者其他地方加载的一个二进制流作为程序代码的一部分。</p>
-<h2 id="类加载的时机"><a href="#类加载的时机" class="headerlink" title="类加载的时机"></a>类加载的时机</h2><p>类从被加载到虚拟机内存中开始，到卸载出内存为止，整个的生命周期包括：</p>
-<ul>
-<li><strong>加载（Loading）</strong></li>
-<li><strong>验证（Verification）</strong></li>
-<li><strong>准备（Preparation）</strong></li>
-<li><strong>解析（Resolution）</strong></li>
-<li><strong>初始化（Initialization）</strong></li>
-<li><strong>使用（Using）</strong></li>
-<li><strong>卸载（Unloading）</strong></li>
-</ul>
-<p><img src="/image/classloader_life.png" alt="类加载机制"></p>
+                    <!-- toc-->
                     
                         <a
                             href="/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/"
@@ -334,7 +311,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>如今编写成二进制本地机器码已经不是唯一的选择了，越来越多的程序语言选择了与操作系统和机器指令集无关的、平台中立的格式作为程序编译以后的存储格式。各种不同的平台的虚拟机与所有的平台统一使用的程序存储格式是“字节码（ByteCode）”，实现语言无关性的基础仍然是<strong>虚拟机</strong>和<strong>字节码存储格式</strong>。Java 虚拟机不和任何语言绑定，它只和“Class 文件”这种特定的二进制文件格式所关联，Class 文件中包含了 <strong>Java 虚拟机指令集</strong>和<strong>符号表</strong>以及若干其他的辅助信息。主要能编译成 Class 文件，Java 虚拟机并不关心来源是何种语言，所以Glojure、Groovy、Scala、JRuby、Jython 这些能够编译成 Class 文件的语言都可以在 Java 虚拟机上面运行。</p>
+                    <!-- toc-->
                     
                         <a
                             href="/2017/03/10/《深入理解Java虚拟机》读书笔记（四）类文件结构/"

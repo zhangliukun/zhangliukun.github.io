@@ -185,10 +185,10 @@
             
                 <li class="sidebar-button">
                     
-                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                        <a  class="sidebar-button-link " href="https://weibo.com/3868391086/profile?topnav=1&wvr=6" target="_blank" rel="noopener" title="Weibo">
                     
-                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Twitter</span>
+                        <i class="sidebar-button-icon fab fa-weibo" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Weibo</span>
                     </a>
             </li>
             
@@ -210,18 +210,6 @@
                     
                         <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
                         <span class="sidebar-button-desc">Love</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a  class="sidebar-button-link "
-                             href="/mailto"
-                            title="邮箱"
-                        >
-                    
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">邮箱</span>
                     </a>
             </li>
             
@@ -272,9 +260,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h1 id="管理你的app内存"><a href="#管理你的app内存" class="headerlink" title="管理你的app内存"></a>管理你的app内存</h1><p>在所有的软件开发环境中内存是一个非常珍贵的资源，但是在物理内存被限制的移动操作系统中内存更加珍贵，虽然Android的Dalvik虚拟机会执行常规的垃圾收集操作，但是你不应该忽视你的app的内存的在哪里得到分配和释放。</p>
-<p>为了垃圾收集器从你的app中回收内存，你需要避免引入内存泄漏（通常是由于在全局的成员里面保持了堆对象的引用）并且在恰当的时候释放掉被引用的对象，对于大多数的app，Dalvik的垃圾收集器会帮你处理剩下的事：系统会回收你的内存分配当符合条件的对象不在你的app的正在运行的线程中被引用到。</p>
-<p>这篇文章解释了Android如何管理app的进程和内存分配的，并且介绍了你在Android开发时怎么样才能主动减少内存的使用，如果要获取更多的关于在进行java编程时清理你的资源的标准实践你可以参考其他关于管理资源引用的书或者在线文档。如果你正在寻找关于分析你的app的内存使用情况的信息的话，可以读<a href="https://developer.android.com/tools/debugging/debugging-memory.html" target="_blank" rel="noopener">Inverstingating Your RAM Usage</a></p>
+                    <!-- toc-->
                     
                         <a
                             href="/2016/07/20/管理你的app内存/"
@@ -325,9 +311,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>最近几天自己实现了一个通用的下拉刷新控件，在项目介绍是写的英文，应该也不难看懂，就懒得再用中文写一遍了就直接复制过来了。如有问题多谢指出。</p>
-<h1 id="common-pull-refresh"><a href="#common-pull-refresh" class="headerlink" title="common-pull-refresh"></a>common-pull-refresh</h1><p>A widget that can achieve the function of pulling to refresh. It’s like a container which can help developer to manager the sub view.</p>
-<p>This widget supports almost all of the android view such as listview,webview,scrollview or more.What’s more,It’s extremely flexible and extensible.You can user your own view for the pull-refresh head.I support some<br>callback to you in the headview for your own animation.you just need to follow the steps below.</p>
+                    <!-- toc-->
                     
                         <a
                             href="/2016/03/01/Android通用下拉刷新/"
@@ -378,13 +362,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>android studio自从1.3以后开始对android的ndk进行支持了，所以现在基本android开发可以废弃eclipse了，毕竟跟着官方的趋势走肯定不会错的。对于开发环境搭建这种事永远都是开始难后面，只要参照一个正确的教程就能事半功倍，对于opencv的在android的搭建教程官网还是停留在eclipse上面，现在我还没在官网找到关于如何在android studio上的官方教程，官方给的实例也是eclipse上面的。其实，移过来也并不麻烦。</p>
-<h2 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h2><ul>
-<li>android studio 1.5＋（android studio最新版的也挺稳定的）</li>
-<li>android NDK（在新的版本都是在studio中下载至SDK中了，不用另外下载了）</li>
-<li><a href="http://docs.opencv.org/" target="_blank" rel="noopener">opencv</a></li>
-<li><a href="http://segmentfault.com/a/1190000004229002" target="_blank" rel="noopener">gradle</a></li>
-</ul>
+                    <!-- toc-->
                     
                         <a
                             href="/2016/01/18/android-opencv环境搭建/"
@@ -435,8 +413,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="概要"><a href="#概要" class="headerlink" title="概要"></a>概要</h2><p>近来在做一个全屏录音的炫酷view时，感觉开始录音时太平淡，所以准备加入一个震动的效果，去网上搜了一下，例子还是挺多，但自己真正开始做的时候发现了许多细节方面的网上的文章都没有说清楚，很多人也可能只是复制粘贴，没有自己去尝试过，在经过一系列探索以后，把使用的心得记录一下。</p>
-<h2 id="官网介绍"><a href="#官网介绍" class="headerlink" title="官网介绍"></a>官网介绍</h2><p>首先我们来看看官网对于震动的介绍<a href="http://developer.android.com/reference/android/os/Vibrator.html" target="_blank" rel="noopener">Vibrator</a>.</p>
+                    <!-- toc-->
                     
                         <a
                             href="/2016/01/05/android如音符般震动/"

@@ -185,10 +185,10 @@
             
                 <li class="sidebar-button">
                     
-                        <a  class="sidebar-button-link " href="https://twitter.com/zhang_zale" target="_blank" rel="noopener" title="Twitter">
+                        <a  class="sidebar-button-link " href="https://weibo.com/3868391086/profile?topnav=1&wvr=6" target="_blank" rel="noopener" title="Weibo">
                     
-                        <i class="sidebar-button-icon fab fa-twitter" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Twitter</span>
+                        <i class="sidebar-button-icon fab fa-weibo" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Weibo</span>
                     </a>
             </li>
             
@@ -210,18 +210,6 @@
                     
                         <i class="sidebar-button-icon fas fa-heart" aria-hidden="true"></i>
                         <span class="sidebar-button-desc">Love</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a  class="sidebar-button-link "
-                             href="/mailto"
-                            title="邮箱"
-                        >
-                    
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">邮箱</span>
                     </a>
             </li>
             
@@ -272,18 +260,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>虚拟机把描述类的数据从 Class 文件加载到内存，并对数据进行<strong>校验</strong>、<strong>转换解析</strong>和<strong>初始化</strong>，最终形成可以被虚拟机直接使用的 Java 类型，这就是虚拟机的<strong>类加载机制</strong>。<br>与那些编译时需要进行链接的语言不同，Java 里面类型的加载、链接和初始化过程都是在程序运行期间完成的，Java 的动态扩展语言特性就是依赖运行期动态加载和动态链接这个特点实现的。用户可以通过 Java 预定义的和自定义的类加载器来使用运行时从网络或者其他地方加载的一个二进制流作为程序代码的一部分。</p>
-<h2 id="类加载的时机"><a href="#类加载的时机" class="headerlink" title="类加载的时机"></a>类加载的时机</h2><p>类从被加载到虚拟机内存中开始，到卸载出内存为止，整个的生命周期包括：</p>
-<ul>
-<li><strong>加载（Loading）</strong></li>
-<li><strong>验证（Verification）</strong></li>
-<li><strong>准备（Preparation）</strong></li>
-<li><strong>解析（Resolution）</strong></li>
-<li><strong>初始化（Initialization）</strong></li>
-<li><strong>使用（Using）</strong></li>
-<li><strong>卸载（Unloading）</strong></li>
-</ul>
-<p><img src="/image/classloader_life.png" alt="类加载机制"></p>
+                    <!-- toc-->
                     
                         <a
                             href="/2017/03/12/《深入理解Java虚拟机》读书笔记（五）虚拟机类加载机制/"
@@ -334,7 +311,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>如今编写成二进制本地机器码已经不是唯一的选择了，越来越多的程序语言选择了与操作系统和机器指令集无关的、平台中立的格式作为程序编译以后的存储格式。各种不同的平台的虚拟机与所有的平台统一使用的程序存储格式是“字节码（ByteCode）”，实现语言无关性的基础仍然是<strong>虚拟机</strong>和<strong>字节码存储格式</strong>。Java 虚拟机不和任何语言绑定，它只和“Class 文件”这种特定的二进制文件格式所关联，Class 文件中包含了 <strong>Java 虚拟机指令集</strong>和<strong>符号表</strong>以及若干其他的辅助信息。主要能编译成 Class 文件，Java 虚拟机并不关心来源是何种语言，所以Glojure、Groovy、Scala、JRuby、Jython 这些能够编译成 Class 文件的语言都可以在 Java 虚拟机上面运行。</p>
+                    <!-- toc-->
                     
                         <a
                             href="/2017/03/10/《深入理解Java虚拟机》读书笔记（四）类文件结构/"
@@ -385,14 +362,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="垃圾收集器关心的内存"><a href="#垃圾收集器关心的内存" class="headerlink" title="垃圾收集器关心的内存"></a>垃圾收集器关心的内存</h2><ul>
-<li><strong>程序计数器、虚拟机栈、本地方法栈</strong>这三个区域是线程私有的，生命周期和线程相同。</li>
-<li>栈中的<strong>栈帧</strong>随着方法的进入和退出规则的入栈和出栈，每一个栈帧中分配的内存在类结构确定后基本就是已知的。</li>
-</ul>
-<p>这几个区域的内存分配都是确定的，不需要过多考虑回收的问题，因为方法结束或者线程结束以后，内存自然就回收了。</p>
-<ul>
-<li><strong>Java 堆</strong>和<strong>方法区</strong>则不一样，一个接口中的多个实现类所需要的内存也不一样，我们只有在程序出于运行中才能知道会创建哪些对象，这部分的内存的分配和回收都是动态的，垃圾回收主要关注的是这部分内存。</li>
-</ul>
+                    <!-- toc-->
                     
                         <a
                             href="/2017/02/24/《深入理解Java虚拟机》读书笔记（三）垃圾收集器和内存分配策略/"
@@ -443,8 +413,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>Java 和 C++之间的区别在于内存动态分配和垃圾收集技术。这篇主要介绍 Java 虚拟机内存的各个区域的作用、服务对象以及一些问题。</p>
-<h2 id="运行时数据区"><a href="#运行时数据区" class="headerlink" title="运行时数据区"></a>运行时数据区</h2><p>Java 虚拟机在执行 Java 程序的过程中会把管理的内存划分为若干个不同的数据区域，如下所示：<br><img src="/image/java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA%E5%9F%9F.png" alt="java运行时数据区"></p>
+                    <!-- toc-->
                     
                         <a
                             href="/2017/02/22/《深入理解Java虚拟机》读书笔记（二）Java内存区域/"
@@ -495,13 +464,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h1 id="走近-Java"><a href="#走近-Java" class="headerlink" title="走近 Java"></a>走近 Java</h1><h2 id="Java-技术体系"><a href="#Java-技术体系" class="headerlink" title="Java 技术体系"></a>Java 技术体系</h2><p>广义上讲，Clojure、JRuby、Groovy等运行于 Java 虚拟机上面的语言都属于 Java 技术体系中的一员，传统意义上面讲，Sun 官方定义的技术体系包括：</p>
-<ul>
-<li>Java 程序设计语言</li>
-<li>各种硬件平台上面的 Java 虚拟机</li>
-<li>Class 文件格式</li>
-<li>Java API 类库</li>
-<li>第三方 Java 类库
+                    <!-- toc-->
                     
                         <a
                             href="/2017/02/20/《深入理解Java虚拟机》读书笔记（一）走近Java/"
@@ -552,14 +515,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><h3 id="一些框架的痛点"><a href="#一些框架的痛点" class="headerlink" title="一些框架的痛点"></a>一些框架的痛点</h3><p>最近准备打造一款 material design 风格的 github 的 Android 客户端，在实现搜索仓库列表界面时，涉及到列表肯定要下拉刷新，上拉加载更多，以前项目中用到的都是一个开源项目 <a href="https://github.com/chrisbanes/Android-PullToRefresh" target="_blank" rel="noopener"><strong>Android-PullToRefresh</strong></a>，但是这个仓库介绍中发现以及标记为 DEPRECATED 了 ，这个框架对于一般的需求确实够用了，但是不支持 <strong>RecyclerView</strong> ,这个开源框架的痛点就是如果要支持某一个控件的下拉刷新功能，就需要对这个控件进行适配修改，在控件这么多的时代，如果要全部支持那是一个巨大工作量，因为这个框架不是通用性的，估计这也是这个框架的开发者将之废弃的原因吧。</p>
-<h3 id="我所想要的"><a href="#我所想要的" class="headerlink" title="我所想要的"></a>我所想要的</h3><p>那么，什么样的下拉刷新，上拉更多框架是我所想要的呢？我所想要的大概具有以下特点:</p>
-<ul>
-<li>支持下拉刷新，上拉加载并且对不同的控件通用低耦合</li>
-<li>支持多种不通的数据类型显示</li>
-<li>支持多种个性化 Header 和 Footer</li>
-<li>易用性高</li>
-</ul>
+                    <!-- toc-->
                     
                         <a
                             href="/2017/02/15/RecyclerView优雅封装/"
@@ -610,7 +566,7 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>设计模式是一套代码设计经验的总结，对设计模式的理解也根据个人能力经验水平的不同而不同，就以 Android 程序开发作为例子，对于很多简单的 app 的代码架构设计一般觉得 View 层通过回调的方式直接和 Data 层直接打交道没什么问题，方便简单，一个Activity 解决所有事。但是随着业务复杂度的提高，你会越来越发现用这种简单的架构做起来以后对于后期维护以及功能扩展简直是一个灾难。<br>所以在 Android 中有了各种不同的代码架构如 MVC、MVP、MVVM等等，最近准备启动一个开源github客户端项目，权衡利弊以后，我决定在代码架构上面使用 MVP 模式来实现解耦，但是在理解学习这些模式之前，有必要好好回顾一下设计模式中的六大原则。</p>
+                    <!-- toc-->
                     
                         <a
                             href="/2017/01/20/设计模式六大原则review/"
